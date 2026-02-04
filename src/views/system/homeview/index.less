@@ -1,0 +1,305 @@
+.home-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  box-sizing: border-box;
+  background-image: url('../../../assets/homeView/bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  .header-title {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    z-index: 100;
+
+    // 渐变文字效果
+    background: linear-gradient(180deg, #ffffff 0%, #459CFF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    // 简单的发光效果
+    text-shadow: 0 0 10px rgba(69, 156, 255, 0.3);
+  }
+
+  .map-container {
+    width: 70%;
+    height: 80%;
+    background: transparent !important; // 确保容器透明
+
+    // 强制高德内部容器透明
+    :deep(.amap-container) {
+      background-image: none !important;
+      background-color: transparent !important;
+    }
+
+    // 隐藏高德LOGO和版权信息
+    :deep(.amap-logo),
+    :deep(.amap-copyright) {
+      display: none !important;
+    }
+
+    // 优化Text标记的默认样式干扰
+    :deep(.amap-marker-label) {
+      border: none !important;
+      background: transparent !important;
+    }
+  }
+
+  .reset-btn {
+    position: absolute;
+    bottom: 12%;
+    right: 26%;
+    z-index: 100;
+    padding: 8px 20px;
+    background: rgba(0, 40, 70, 0.5);
+    border: 1px solid #459CFF;
+    color: #efefef;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    user-select: none;
+    backdrop-filter: blur(4px);
+
+    &:hover {
+      background: rgba(69, 156, 255, 0.4);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(69, 156, 255, 0.6);
+      text-shadow: 0 0 5px #fff;
+    }
+  }
+
+  .reset-btn2 {
+    bottom: 12%;
+    right: 20%;
+  }
+
+  .reset-btn3 {
+    bottom: 12%;
+    right: 14%;
+  }
+
+  // 图标容器
+  :deep(.map-icon-container) {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    // 图标悬浮动画
+    svg {
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+      transition: transform 0.3s;
+    }
+
+    &:hover svg {
+      transform: translateY(-5px);
+    }
+
+    // 底部呼吸光环
+    .pulse-ring {
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%) rotateX(55deg);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: transparent;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      animation: ripple 2s infinite linear;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    // 数值标签
+    .map-icon-count {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(28, 172, 37, 0.8));
+      color: #fff;
+      font-size: 13px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+
+      // 底部小箭头
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 4px 4px 0;
+        border-style: solid;
+        border-color: rgba(50, 50, 50, 0.9) transparent transparent transparent;
+      }
+
+      &.city-count {
+        font-size: 11px;
+        padding: 2px 6px;
+      }
+    }
+  }
+
+  @keyframes ripple {
+    0% {
+      width: 0;
+      height: 0;
+      opacity: 1;
+      border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    100% {
+      width: 40px;
+      height: 40px;
+      opacity: 0;
+      border-color: rgba(255, 255, 255, 0);
+    }
+  }
+
+  // 自定义信息窗体样式
+  :deep(.custom-info-window) {
+    width: 450px;
+    background: rgba(4, 62, 130, 0.7); // 增加透明度
+    border: 1px solid rgb(69, 156, 255);
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(69, 156, 255, 0.4);
+    color: #fff;
+    font-family: 'Microsoft YaHei';
+    overflow: hidden;
+
+    .info-header {
+      height: 40px;
+      line-height: 40px;
+      background: rgba(69, 156, 255, 0.2);
+      border-bottom: 1px solid #459CFF;
+      padding: 0 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .info-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #00eaff;
+      }
+
+      .info-close {
+        cursor: pointer;
+        font-size: 20px;
+        color: #fff;
+        opacity: 0.8;
+
+        &:hover {
+          opacity: 1;
+          color: #ff4d4f;
+        }
+      }
+    }
+
+    .info-body {
+      padding: 10px;
+
+      .list-header {
+        display: flex;
+        padding: 8px 5px;
+        background: rgba(255, 255, 255, 0.1);
+        font-size: 14px;
+        color: #ffffff;
+      }
+
+      .list-content {
+        max-height: 250px;
+        overflow-y: auto;
+
+        // 滚动条样式
+        &::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #459CFF;
+          border-radius: 3px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .list-item {
+          display: flex;
+          padding: 8px 5px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          font-size: 13px;
+          transition: background 0.2s;
+
+          &:hover {
+            background: rgba(69, 156, 255, 0.15);
+          }
+
+          span {
+            padding: 0 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .ellipsis-tooltip {
+            position: relative;
+
+            &:hover::after {
+              content: attr(title);
+              position: absolute;
+              bottom: 100%;
+              left: 50%;
+              transform: translateX(-50%);
+              background: rgba(0, 0, 0, 0.8);
+              color: #fff;
+              padding: 5px 10px;
+              border-radius: 4px;
+              white-space: normal;
+              word-break: break-all;
+              max-width: 200px;
+              z-index: 1000;
+              pointer-events: none;
+              font-size: 12px;
+              line-height: 1.4;
+              border: 1px solid #459CFF;
+            }
+          }
+
+        }
+
+        .no-data {
+          text-align: center;
+          padding: 20px;
+          color: #999;
+        }
+      }
+    }
+  }
+}
