@@ -8,15 +8,8 @@
   * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
 -->
 <template>
-  <a-drawer
-    :body-style="{ paddingBottom: '80px' }"
-    :maskClosable="true"
-    :title="form.menuId ? '编辑' : '添加'"
-    :open="visible"
-    :width="600"
-    @close="onClose"
-    destroyOnClose
-  >
+  <a-drawer :body-style="{ paddingBottom: '80px' }" :maskClosable="true" :title="form.menuId ? '编辑' : '添加'"
+    :open="visible" :width="600" @close="onClose" destroyOnClose>
     <a-form ref="formRef" :labelCol="{ span: 5 }" :labelWrap="true" :model="form" :rules="rules">
       <a-form-item label="菜单类型" name="menuType">
         <a-radio-group v-model:value="form.menuType" button-style="solid">
@@ -25,9 +18,9 @@
           </a-radio-button>
         </a-radio-group>
       </a-form-item>
-      <a-form-item :label="form.menuType === MENU_TYPE_ENUM.CATALOG.value ? '上级目录' : '上级菜单'">
+      <!-- <a-form-item :label="form.menuType === MENU_TYPE_ENUM.CATALOG.value ? '上级目录' : '上级菜单'">
         <MenuTreeSelect ref="parentMenuTreeSelect" v-model:value="form.parentId" />
-      </a-form-item>
+      </a-form-item> -->
       <!--      目录 菜单 start   -->
       <template v-if="form.menuType === MENU_TYPE_ENUM.CATALOG.value || form.menuType === MENU_TYPE_ENUM.MENU.value">
         <a-form-item label="菜单名称" name="menuName">
@@ -62,13 +55,8 @@
           <a-switch v-model:checked="form.visibleFlag" checked-children="显示" un-checked-children="不显示" />
         </a-form-item>
         <a-form-item label="禁用状态" name="disabledFlag">
-          <a-switch
-            v-model:checked="form.disabledFlag"
-            :checkedValue="false"
-            :unCheckedValue="true"
-            checked-children="启用"
-            un-checked-children="禁用"
-          />
+          <a-switch v-model:checked="form.disabledFlag" :checkedValue="false" :unCheckedValue="true"
+            checked-children="启用" un-checked-children="禁用" />
         </a-form-item>
       </template>
       <!--      目录 菜单 end   -->
@@ -81,27 +69,22 @@
           <MenuTreeSelect ref="contextMenuTreeSelect" v-model:value="form.contextMenuId" />
         </a-form-item>
         <a-form-item label="功能点状态" name="funcDisabledFlag">
-          <a-switch
-            v-model:checked="form.disabledFlag"
-            :checkedValue="false"
-            :unCheckedValue="true"
-            checked-children="启用"
-            un-checked-children="禁用"
-          />
+          <a-switch v-model:checked="form.disabledFlag" :checkedValue="false" :unCheckedValue="true"
+            checked-children="启用" un-checked-children="禁用" />
         </a-form-item>
-        <a-form-item label="权限类型" name="permsType">
+        <!-- <a-form-item label="权限类型" name="permsType">
           <a-radio-group v-model:value="form.permsType">
             <a-radio v-for="item in MENU_PERMS_TYPE_ENUM" :key="item.value" :value="item.value">
               {{ item.desc }}
             </a-radio>
           </a-radio-group>
-        </a-form-item>
+        </a-form-item> -->
         <a-form-item label="前端权限" name="webPerms" help="用于前端按钮等功能的展示和隐藏，搭配v-privilege使用">
           <a-input v-model:value="form.webPerms" placeholder="请输入前端权限" />
         </a-form-item>
-        <a-form-item label="后端权限" name="apiPerms" help="后端@SaCheckPermission中的权限字符串，多个以英文逗号,分割">
+        <!-- <a-form-item label="后端权限" name="apiPerms" help="后端@SaCheckPermission中的权限字符串，多个以英文逗号,分割">
           <a-input v-model:value="form.apiPerms" placeholder="请输入后端权限" />
-        </a-form-item>
+        </a-form-item> -->
       </template>
       <!--      功能点 end   -->
       <a-form-item label="排序" name="sort" help="值越小越靠前">
@@ -116,182 +99,182 @@
   </a-drawer>
 </template>
 <script setup>
-  import { message } from 'ant-design-vue';
-  import _ from 'lodash';
-  import { nextTick, reactive, ref } from 'vue';
-  import MenuTreeSelect from './menu-tree-select.vue';
-  import { menuApi } from '/@/api/system/menu-api';
-  import IconSelect from '/@/components/framework/icon-select/index.vue';
-  import { MENU_DEFAULT_PARENT_ID, MENU_PERMS_TYPE_ENUM, MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
-  import { smartSentry } from '/@/lib/smart-sentry';
-  import { SmartLoading } from '/@/components/framework/smart-loading';
+import { message } from 'ant-design-vue';
+import _ from 'lodash';
+import { nextTick, reactive, ref } from 'vue';
+import MenuTreeSelect from './menu-tree-select.vue';
+import { menuApi } from '/@/api/system/menu-api';
+import IconSelect from '/@/components/framework/icon-select/index.vue';
+import { MENU_DEFAULT_PARENT_ID, MENU_PERMS_TYPE_ENUM, MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
+import { smartSentry } from '/@/lib/smart-sentry';
+import { SmartLoading } from '/@/components/framework/smart-loading';
 
-  // ----------------------- 以下是字段定义 emits props ------------------------
-  // emit
-  const emit = defineEmits(['reloadList']);
+// ----------------------- 以下是字段定义 emits props ------------------------
+// emit
+const emit = defineEmits(['reloadList']);
 
-  // ----------------------- 展开、隐藏编辑窗口 ------------------------
+// ----------------------- 展开、隐藏编辑窗口 ------------------------
 
-  // 是否展示抽屉
-  const visible = ref(false);
+// 是否展示抽屉
+const visible = ref(false);
 
-  const contextMenuTreeSelect = ref();
-  const parentMenuTreeSelect = ref();
+const contextMenuTreeSelect = ref();
+const parentMenuTreeSelect = ref();
 
-  //展开编辑窗口
-  async function showDrawer(rowData) {
-    Object.assign(form, formDefault);
-    if (rowData && !_.isEmpty(rowData)) {
-      Object.assign(form, rowData);
-      if (form.parentId === MENU_DEFAULT_PARENT_ID) {
-        form.parentId = null;
-      }
-    }
-    visible.value = true;
-    refreshParentAndContext();
-  }
-
-  function refreshParentAndContext() {
-    nextTick(() => {
-      if (contextMenuTreeSelect.value) {
-        contextMenuTreeSelect.value.queryMenuTree();
-      }
-      if (parentMenuTreeSelect.value) {
-        parentMenuTreeSelect.value.queryMenuTree();
-      }
-    });
-  }
-
-  // 隐藏窗口
-  function onClose() {
-    Object.assign(form, formDefault);
-    formRef.value.resetFields();
-    visible.value = false;
-  }
-
-  // ----------------------- form表单相关操作 ------------------------
-
-  const formRef = ref();
-  const formDefault = {
-    menuId: undefined,
-    menuName: undefined,
-    menuType: MENU_TYPE_ENUM.CATALOG.value,
-    icon: undefined,
-    parentId: undefined,
-    path: undefined,
-    permsType: MENU_PERMS_TYPE_ENUM.SA_TOKEN.value,
-    webPerms: undefined,
-    apiPerms: undefined,
-    sort: undefined,
-    visibleFlag: true,
-    cacheFlag: false,
-    component: undefined,
-    contextMenuId: undefined,
-    disabledFlag: false,
-    frameFlag: false,
-    frameUrl: undefined,
-  };
-  let form = reactive({ ...formDefault });
-
-  function continueResetForm() {
-    refreshParentAndContext();
-    const menuType = form.menuType;
-    const parentId = form.parentId;
-    const webPerms = form.webPerms;
-    Object.assign(form, formDefault);
-    formRef.value.resetFields();
-    form.menuType = menuType;
-    form.parentId = parentId;
-    if (form.menuType === MENU_TYPE_ENUM.POINTS.value) {
-      form.contextMenuId = parentId;
-    }
-    // 移除最后一个：后面的内容
-    if (webPerms && webPerms.lastIndexOf(':')) {
-      form.webPerms = webPerms.substring(0, webPerms.lastIndexOf(':') + 1);
+//展开编辑窗口
+async function showDrawer(rowData) {
+  Object.assign(form, formDefault);
+  if (rowData && !_.isEmpty(rowData)) {
+    Object.assign(form, rowData);
+    if (form.parentId === MENU_DEFAULT_PARENT_ID) {
+      form.parentId = null;
     }
   }
+  visible.value = true;
+  refreshParentAndContext();
+}
 
-  const rules = {
-    menuType: [{ required: true, message: '菜单类型不能为空' }],
-    permsType: [{ required: true, message: '权限类型不能为空' }],
-    menuName: [
-      { required: true, message: '菜单名称不能为空' },
-      { max: 20, message: '菜单名称不能大于20个字符', trigger: 'blur' },
-    ],
-    frameUrl: [
-      { required: true, message: '外链地址不能为空' },
-      { max: 500, message: '外链地址不能大于500个字符', trigger: 'blur' },
-    ],
-    path: [
-      { required: true, message: '路由地址不能为空' },
-      { max: 100, message: '路由地址不能大于100个字符', trigger: 'blur' },
-    ],
-  };
-
-  function validateForm(formRef) {
-    return new Promise((resolve) => {
-      formRef
-        .validate()
-        .then(() => {
-          resolve(true);
-        })
-        .catch(() => {
-          resolve(false);
-        });
-    });
-  }
-
-  const onSubmit = async (continueFlag) => {
-    let validateFormRes = await validateForm(formRef.value);
-    if (!validateFormRes) {
-      message.error('参数验证错误，请仔细填写表单数据!');
-      return;
+function refreshParentAndContext() {
+  nextTick(() => {
+    if (contextMenuTreeSelect.value) {
+      contextMenuTreeSelect.value.queryMenuTree();
     }
-    SmartLoading.show();
-    try {
-      let params = _.cloneDeep(form);
-      // 若无父级ID 默认设置为0
-      if (!params.parentId) {
-        params.parentId = 0;
-      }
-      if (params.menuId) {
-        await menuApi.updateMenu(params);
-      } else {
-        await menuApi.addMenu(params);
-      }
-      message.success(`${params.menuId ? '修改' : '添加'}成功`);
-      if (continueFlag) {
-        continueResetForm();
-      } else {
-        onClose();
-      }
-      emit('reloadList');
-    } catch (error) {
-      smartSentry.captureError(error);
-    } finally {
-      SmartLoading.hide();
+    if (parentMenuTreeSelect.value) {
+      parentMenuTreeSelect.value.queryMenuTree();
     }
-  };
-
-  function selectIcon(icon) {
-    form.icon = icon;
-  }
-
-  // ----------------------- 以下是暴露的方法内容 ------------------------
-  defineExpose({
-    showDrawer,
   });
+}
+
+// 隐藏窗口
+function onClose() {
+  Object.assign(form, formDefault);
+  formRef.value.resetFields();
+  visible.value = false;
+}
+
+// ----------------------- form表单相关操作 ------------------------
+
+const formRef = ref();
+const formDefault = {
+  menuId: undefined,
+  menuName: undefined,
+  menuType: MENU_TYPE_ENUM.CATALOG.value,
+  icon: undefined,
+  parentId: undefined,
+  path: undefined,
+  permsType: MENU_PERMS_TYPE_ENUM.SA_TOKEN.value,
+  webPerms: undefined,
+  apiPerms: undefined,
+  sort: undefined,
+  visibleFlag: true,
+  cacheFlag: false,
+  component: undefined,
+  contextMenuId: undefined,
+  disabledFlag: false,
+  frameFlag: false,
+  frameUrl: undefined,
+};
+let form = reactive({ ...formDefault });
+
+function continueResetForm() {
+  refreshParentAndContext();
+  const menuType = form.menuType;
+  const parentId = form.parentId;
+  const webPerms = form.webPerms;
+  Object.assign(form, formDefault);
+  formRef.value.resetFields();
+  form.menuType = menuType;
+  form.parentId = parentId;
+  if (form.menuType === MENU_TYPE_ENUM.POINTS.value) {
+    form.contextMenuId = parentId;
+  }
+  // 移除最后一个：后面的内容
+  if (webPerms && webPerms.lastIndexOf(':')) {
+    form.webPerms = webPerms.substring(0, webPerms.lastIndexOf(':') + 1);
+  }
+}
+
+const rules = {
+  menuType: [{ required: true, message: '菜单类型不能为空' }],
+  permsType: [{ required: true, message: '权限类型不能为空' }],
+  menuName: [
+    { required: true, message: '菜单名称不能为空' },
+    { max: 20, message: '菜单名称不能大于20个字符', trigger: 'blur' },
+  ],
+  frameUrl: [
+    { required: true, message: '外链地址不能为空' },
+    { max: 500, message: '外链地址不能大于500个字符', trigger: 'blur' },
+  ],
+  path: [
+    { required: true, message: '路由地址不能为空' },
+    { max: 100, message: '路由地址不能大于100个字符', trigger: 'blur' },
+  ],
+};
+
+function validateForm(formRef) {
+  return new Promise((resolve) => {
+    formRef
+      .validate()
+      .then(() => {
+        resolve(true);
+      })
+      .catch(() => {
+        resolve(false);
+      });
+  });
+}
+
+const onSubmit = async (continueFlag) => {
+  let validateFormRes = await validateForm(formRef.value);
+  if (!validateFormRes) {
+    message.error('参数验证错误，请仔细填写表单数据!');
+    return;
+  }
+  SmartLoading.show();
+  try {
+    let params = _.cloneDeep(form);
+    // 若无父级ID 默认设置为0
+    if (!params.parentId) {
+      params.parentId = 0;
+    }
+    if (params.menuId) {
+      await menuApi.updateMenu(params);
+    } else {
+      await menuApi.addMenu(params);
+    }
+    message.success(`${params.menuId ? '修改' : '添加'}成功`);
+    if (continueFlag) {
+      continueResetForm();
+    } else {
+      onClose();
+    }
+    emit('reloadList');
+  } catch (error) {
+    smartSentry.captureError(error);
+  } finally {
+    SmartLoading.hide();
+  }
+};
+
+function selectIcon(icon) {
+  form.icon = icon;
+}
+
+// ----------------------- 以下是暴露的方法内容 ------------------------
+defineExpose({
+  showDrawer,
+});
 </script>
 <style lang="less" scoped>
-  .footer {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    border-top: 1px solid #e9e9e9;
-    padding: 10px 16px;
-    background: #fff;
-    text-align: left;
-    z-index: 1;
-  }
+.footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid #e9e9e9;
+  padding: 10px 16px;
+  background: #fff;
+  text-align: left;
+  z-index: 1;
+}
 </style>

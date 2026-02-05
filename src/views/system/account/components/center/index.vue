@@ -66,8 +66,8 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import { regular } from '/@/constants/regular-const.js';
-import DepartmentTreeSelect from '/@/components/system/department-tree-select/index.vue';
-import PositionSelect from '/@/components/system/position-select/index.vue';
+// import DepartmentTreeSelect from '/@/components/system/department-tree-select/index.vue';
+// import PositionSelect from '/@/components/system/position-select/index.vue';
 import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
 import { loginApi } from '/@/api/system/login-api.js';
 import { useUserStore } from '/@/store/modules/system/user.js';
@@ -125,16 +125,20 @@ let avatarUrl = ref();
 async function getLoginInfo() {
   try {
     //获取登录用户信息
-    const res = await loginApi.getUserInfo();
-    let data = res.data;
-    //更新用户信息到pinia
-    useUserStore().setUserLoginInfo(data);
+    // 2. 并发获取: 用户信息 + 菜单权限树
+    const [resUser, resMenu] = await Promise.all([
+      loginApi.getUserInfo(),
+      loginApi.getUserPermissiontree(),
+    ]);
+
+    // 3. 更新 Pinia (传入用户信息 和 菜单树)
+    useUserStore().setUserLoginInfo(resUser.data, resMenu.data);
     // 当前form展示
-    form.employeeId = data.Id;
-    form.loginName = data.LoginName;
-    form.actualName = data.RealName;
-    form.gender = data.Sex;
-    form.phone = data.phone;
+    form.employeeId = resUser.data.Id;
+    form.loginName = resUser.data.LoginName;
+    form.actualName = resUser.data.RealName;
+    form.gender = resUser.data.Sex;
+    form.phone = resUser.data.phone;
     // form.departmentId = data.departmentId;
     // form.email = data.email;
     // form.positionId = data.positionId;
@@ -142,7 +146,6 @@ async function getLoginInfo() {
     // form.disabledFlag = data.disabledFlag;
     // 头像展示
     // avatarUrl.value = data.avatar;
-    console.log('ss', form);
   } catch (e) {
     smartSentry.captureError(e);
   }
