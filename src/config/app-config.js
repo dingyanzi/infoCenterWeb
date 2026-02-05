@@ -41,7 +41,7 @@ export const appDefaultConfig = {
   // 帮助文档默认展开
   helpDocExpandFlag: false,
   // 水印
-  watermarkFlag: true,
+  watermarkFlag: false,
   // 网站名称
   websiteName: '信息中心平台',
   // 主题颜色

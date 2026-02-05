@@ -32,4 +32,5 @@ export default {
   'setting.helpdoc': '帮助文档',
   'setting.helpdoc.expand': '帮助文档展开',
   'setting.watermark': '水印',
+  'system.addMenu': '添加菜单',
 };

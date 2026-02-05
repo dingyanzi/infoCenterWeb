@@ -178,10 +178,10 @@ export const useUserStore = defineStore({
       //功能点
       this.pointsList = menuList.filter((menu) => menu.menuType === MENU_TYPE_ENUM.POINTS.value && menu.visibleFlag && !menu.disabledFlag);
 
-      // 获取用户未读消息
-      this.queryUnreadMessageCount();
-      // 获取待办工作数
-      this.queryToBeDoneList();
+      // // 获取用户未读消息
+      // this.queryUnreadMessageCount();
+      // // 获取待办工作数
+      // this.queryToBeDoneList();
     },
 
     setToken(token) {

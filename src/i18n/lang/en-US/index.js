@@ -32,4 +32,7 @@ export default {
   'setting.helpdoc': 'Show Helpdoc',
   'setting.helpdoc.expand': 'Helpdoc Expand',
   'setting.watermark': 'Show Watermark',
+
+  'system.addMenu': 'Add Menu',
+
 };

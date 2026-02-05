@@ -34,8 +34,8 @@ export const menuApi = {
   /**
    * 查询所有菜单列表
    */
-  queryMenu: () => {
-    return getRequest('/menu/query');
+  queryMenu: (params) => {
+    return postRequest('/menu/query', params);
   },
 
   /**
