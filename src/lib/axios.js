@@ -73,37 +73,36 @@ smartAxios.interceptors.response.use(
         response.data.data = JSON.parse(decryptStr);
       }
     }
-
     const res = response.data;
-    if (res.code && res.code !== 1) {
+    if (res.status && res.status !== 200) {
       // `token` 过期或者账号已在别处登录
-      if (res.code === 30007 || res.code === 30008) {
-        message.destroy();
-        message.error('您没有登录，请重新登录');
-        setTimeout(logout, 300);
-        return Promise.reject(response);
-      }
+      // if (res.code === 30007 || res.code === 30008) {
+      //   message.destroy();
+      //   message.error('您没有登录，请重新登录');
+      //   setTimeout(logout, 300);
+      //   return Promise.reject(response);
+      // }
 
-      // 等保安全的登录提醒
-      if (res.code === 30010 || res.code === 30011) {
-        Modal.error({
-          title: '重要提醒',
-          content: res.msg,
-        });
-        return Promise.reject(response);
-      }
+      // // 等保安全的登录提醒
+      // if (res.code === 30010 || res.code === 30011) {
+      //   Modal.error({
+      //     title: '重要提醒',
+      //     content: res.msg,
+      //   });
+      //   return Promise.reject(response);
+      // }
 
-      // 长时间未操作系统，需要重新登录
-      if (res.code === 30012) {
-        Modal.error({
-          title: '重要提醒',
-          content: res.msg,
-          onOk: logout,
-        });
-        setTimeout(logout, 3000);
-        return Promise.reject(response);
-      }
-      message.destroy();
+      // // 长时间未操作系统，需要重新登录
+      // if (res.code === 30012) {
+      //   Modal.error({
+      //     title: '重要提醒',
+      //     content: res.msg,
+      //     onOk: logout,
+      //   });
+      //   setTimeout(logout, 3000);
+      //   return Promise.reject(response);
+      // }
+      // message.destroy();
       message.error(res.msg);
       return Promise.reject(response);
     } else {
@@ -112,9 +111,10 @@ smartAxios.interceptors.response.use(
   },
   (error) => {
     // 对响应错误做点什么
-    if (error.message.indexOf('timeout') !== -1) {
+    if (error.message.indexOf('401') !== -1) {
       message.destroy();
-      message.error('网络超时');
+      message.error('您没有登录，请重新登录');
+      setTimeout(logout, 300);
     } else if (error.message === 'Network Error') {
       message.destroy();
       message.error('网络连接错误');

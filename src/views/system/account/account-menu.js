@@ -16,24 +16,24 @@ export const ACCOUNT_MENU = {
     menuName: '修改密码',
     components: markRaw(defineAsyncComponent(() => import('./components/password/index.vue'))),
   },
-  MESSAGE: {
-    menuId: 'message',
-    menuName: '我的消息',
-    components: markRaw(defineAsyncComponent(() => import('./components/message/index.vue'))),
-  },
-  NOTICE: {
-    menuId: 'notice',
-    menuName: '通知公告',
-    components: markRaw(defineAsyncComponent(() => import('./components/notice/index.vue'))),
-  },
-  LOGIN_LOG: {
-    menuId: 'login-log',
-    menuName: '登录日志',
-    components: markRaw(defineAsyncComponent(() => import('./components/login-log/index.vue'))),
-  },
-  OPERATE_LOG: {
-    menuId: 'operate-log',
-    menuName: '操作日志',
-    components: markRaw(defineAsyncComponent(() => import('./components/operate-log/index.vue'))),
-  },
+  // MESSAGE: {
+  //   menuId: 'message',
+  //   menuName: '我的消息',
+  //   components: markRaw(defineAsyncComponent(() => import('./components/message/index.vue'))),
+  // },
+  // NOTICE: {
+  //   menuId: 'notice',
+  //   menuName: '通知公告',
+  //   components: markRaw(defineAsyncComponent(() => import('./components/notice/index.vue'))),
+  // },
+  // LOGIN_LOG: {
+  //   menuId: 'login-log',
+  //   menuName: '登录日志',
+  //   components: markRaw(defineAsyncComponent(() => import('./components/login-log/index.vue'))),
+  // },
+  // OPERATE_LOG: {
+  //   menuId: 'operate-log',
+  //   menuName: '操作日志',
+  //   components: markRaw(defineAsyncComponent(() => import('./components/operate-log/index.vue'))),
+  // },
 };

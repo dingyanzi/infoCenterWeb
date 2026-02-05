@@ -19,42 +19,55 @@
   </div>
 </template>
 <script setup>
-  import { computed, onMounted, ref, watch } from 'vue';
-  import _ from 'lodash';
-  import { ACCOUNT_MENU } from '/@/views/system/account/account-menu.js';
-  import { useRoute } from 'vue-router';
-  import { useUserStore } from '/@/store/modules/system/user.js';
-  import { theme as antDesignTheme } from 'ant-design-vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import _ from 'lodash';
+import { ACCOUNT_MENU } from '/@/views/system/account/account-menu.js';
+import { useRoute } from 'vue-router';
+import { useUserStore } from '/@/store/modules/system/user.js';
+import { theme as antDesignTheme } from 'ant-design-vue';
 
-  // 菜单展示
-  let menuList = computed(() => {
-    return _.values(ACCOUNT_MENU);
-  });
-  // 选中的菜单
-  let selectedMenu = ref({ menuId: 0 });
-  let selectedKeys = ref([]);
-  watch(
-    () => selectedMenu.value,
-    (newQuery, oldQuery) => {
-      selectedKeys.value = _.isEmpty(selectedMenu.value) ? [] : [selectedMenu.value.menuId];
-    }
-  );
-
-  function selectMenu(menuId) {
-    selectedMenu.value = menuList.value.find((e) => e.menuId === menuId);
+// 菜单展示
+let menuList = computed(() => {
+  return _.values(ACCOUNT_MENU);
+});
+// 选中的菜单
+let selectedMenu = ref({ menuId: 0 });
+let selectedKeys = ref([]);
+watch(
+  () => selectedMenu.value,
+  (newQuery, oldQuery) => {
+    selectedKeys.value = _.isEmpty(selectedMenu.value) ? [] : [selectedMenu.value.menuId];
   }
+);
 
-  // ------------------------- 未读消息数量  -------------------------
-  const unreadMessageCount = computed(() => {
-    return useUserStore().unreadMessageCount;
-  });
+function selectMenu(menuId) {
+  selectedMenu.value = menuList.value.find((e) => e.menuId === menuId);
+}
 
-  // ------------------------- 绑定路由参数  -------------------------
-  const route = useRoute();
-  onMounted(() => {
-    if (_.isEmpty(menuList.value)) {
-      return;
-    }
+// ------------------------- 未读消息数量  -------------------------
+const unreadMessageCount = computed(() => {
+  return useUserStore().unreadMessageCount;
+});
+
+// ------------------------- 绑定路由参数  -------------------------
+const route = useRoute();
+onMounted(() => {
+  if (_.isEmpty(menuList.value)) {
+    return;
+  }
+  let menuId;
+  if (route.query.menuId) {
+    menuId = route.query.menuId;
+  } else {
+    let firstMenu = menuList.value[0];
+    menuId = firstMenu.menuId;
+  }
+  selectMenu(menuId);
+});
+
+watch(
+  () => route.query,
+  (newQuery, oldQuery) => {
     let menuId;
     if (route.query.menuId) {
       menuId = route.query.menuId;
@@ -63,42 +76,29 @@
       menuId = firstMenu.menuId;
     }
     selectMenu(menuId);
-  });
-
-  watch(
-    () => route.query,
-    (newQuery, oldQuery) => {
-      let menuId;
-      if (route.query.menuId) {
-        menuId = route.query.menuId;
-      } else {
-        let firstMenu = menuList.value[0];
-        menuId = firstMenu.menuId;
-      }
-      selectMenu(menuId);
-    }
-  );
-  const { useToken } = antDesignTheme;
-  const { token } = useToken();
+  }
+);
+const { useToken } = antDesignTheme;
+const { token } = useToken();
 </script>
 <style lang="less" scoped>
-  @color-bg-container: v-bind('token.colorBgContainer');
+@color-bg-container: v-bind('token.colorBgContainer');
 
-  .account-container {
-    display: flex;
-    height: 100%;
+.account-container {
+  display: flex;
+  height: 100%;
 
-    .account-menu-list {
-      width: 180px;
-      height: calc(100% - 100);
-    }
-
-    .account-content {
-      flex: 1;
-      margin-left: 10px;
-      padding: 20px;
-      border-radius: 8px;
-      background-color: @color-bg-container;
-    }
+  .account-menu-list {
+    width: 180px;
+    height: calc(100% - 100);
   }
+
+  .account-content {
+    flex: 1;
+    margin-left: 10px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: @color-bg-container;
+  }
+}
 </style>
