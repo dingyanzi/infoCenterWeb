@@ -37,9 +37,38 @@
     text-shadow: 0 0 10px rgba(69, 156, 255, 0.3);
   }
 
-  .map-container {
+  .header-subtitle {
+    position: absolute;
+    top: 50px;
+    width: 100%;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    letter-spacing: 2px;
+    z-index: 100;
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+
+    // 渐变文字效果
+    background: linear-gradient(180deg, #94c5f8 0%, #aaddff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.8;
+    text-shadow: 0 0 5px rgba(148, 197, 248, 0.3);
+  }
+
+  .center-map-wrapper {
     width: 70%;
     height: 80%;
+    position: relative;
+  }
+
+  .map-container {
+    width: 100%;
+    height: 100%;
     background: transparent !important; // 确保容器透明
 
     // 强制高德内部容器透明
@@ -61,22 +90,40 @@
     }
   }
 
-  .reset-btn {
+  .bottom-controls {
     position: absolute;
-    bottom: 12%;
-    right: 26%;
+    bottom: 0px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0 20px 0;
+    box-sizing: border-box;
     z-index: 100;
-    padding: 8px 20px;
-    background: rgba(0, 40, 70, 0.5);
-    border: 1px solid #459CFF;
-    color: #efefef;
-    border-radius: 4px;
+    pointer-events: none; // 让鼠标可以穿透空白区域点击地图
+
+    >div {
+      pointer-events: auto; // 子元素恢复交互
+    }
+  }
+
+  .reset-btn {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(4, 62, 130, 0.4);
+    border: 1px solid rgba(69, 156, 255, 0.5);
+    color: #00eaff;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 14px;
-    letter-spacing: 1px;
+    font-size: 20px;
     transition: all 0.3s;
     user-select: none;
     backdrop-filter: blur(4px);
+    box-shadow: 0 0 10px rgba(69, 156, 255, 0.3);
 
     &:hover {
       background: rgba(69, 156, 255, 0.4);
@@ -300,6 +347,82 @@
           color: #999;
         }
       }
+    }
+  }
+
+  .total-count-panel {
+    position: relative;
+    z-index: 100;
+    padding: 8px 15px;
+    background: linear-gradient(135deg, rgba(4, 62, 130, 0.6) 0%, rgba(4, 62, 130, 0.3) 100%);
+    border: 1px solid rgba(69, 156, 255, 0.5);
+    border-left: 3px solid #459CFF;
+    border-radius: 4px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 20px rgba(69, 156, 255, 0.2);
+    min-width: 120px;
+    transition: all 0.3s;
+
+    &:hover {
+      box-shadow: 0 0 25px rgba(69, 156, 255, 0.4);
+      background: linear-gradient(135deg, rgba(4, 62, 130, 0.8) 0%, rgba(4, 62, 130, 0.5) 100%);
+    }
+
+    .label {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      margin-bottom: 5px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: #00eaff;
+        border-radius: 50%;
+        margin-right: 8px;
+        box-shadow: 0 0 5px #00eaff;
+      }
+    }
+
+    .count-wrapper {
+      display: flex;
+      align-items: baseline;
+      padding-left: 10px;
+
+      .number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #00eaff;
+        font-family: 'Arial', sans-serif;
+        text-shadow: 0 0 15px rgba(0, 234, 255, 0.6);
+        margin-right: 6px;
+        letter-spacing: 1px;
+      }
+
+      .unit {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 13px;
+        font-weight: normal;
+      }
+    }
+
+    // 入场动画
+    animation: slideInDown 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes slideInDown {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
     }
   }
 }

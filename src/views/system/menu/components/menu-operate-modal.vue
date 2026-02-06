@@ -1,94 +1,64 @@
-<!--
-  * 菜单 表单弹窗
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-06-12 20:11:39
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
+
   <a-drawer :body-style="{ paddingBottom: '80px' }" :maskClosable="true" :title="form.menuId ? '编辑' : '添加'"
     :open="visible" :width="600" @close="onClose" destroyOnClose>
     <a-form ref="formRef" :labelCol="{ span: 5 }" :labelWrap="true" :model="form" :rules="rules">
-      <a-form-item label="菜单类型" name="menuType">
+      <!-- <a-form-item label="菜单类型" name="menuType">
         <a-radio-group v-model:value="form.menuType" button-style="solid">
           <a-radio-button v-for="item in MENU_TYPE_ENUM" :key="item.value" :value="item.value">
             {{ item.desc }}
           </a-radio-button>
         </a-radio-group>
-      </a-form-item>
+      </a-form-item> -->
       <!-- <a-form-item :label="form.menuType === MENU_TYPE_ENUM.CATALOG.value ? '上级目录' : '上级菜单'">
         <MenuTreeSelect ref="parentMenuTreeSelect" v-model:value="form.parentId" />
       </a-form-item> -->
       <!--      目录 菜单 start   -->
-      <template v-if="form.menuType === MENU_TYPE_ENUM.CATALOG.value || form.menuType === MENU_TYPE_ENUM.MENU.value">
-        <a-form-item label="菜单名称" name="menuName">
-          <a-input v-model:value="form.menuName" placeholder="请输入菜单名称" />
-        </a-form-item>
-        <a-form-item label="菜单图标" name="icon">
-          <IconSelect @updateIcon="selectIcon">
-            <template #iconSelect>
-              <a-input v-model:value="form.icon" placeholder="请输入菜单图标" style="width: 200px" />
-              <component :is="$antIcons[form.icon]" class="smart-margin-left15" style="font-size: 20px" />
-            </template>
-          </IconSelect>
-        </a-form-item>
-        <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="路由地址" name="path">
+      <a-form-item label="菜单名称" name="Name">
+        <a-input v-model:value="form.Name" placeholder="请输入菜单名称" />
+      </a-form-item>
+      <a-form-item label="菜单图标" name="Icon">
+        <IconSelect @updateIcon="selectIcon">
+          <template #iconSelect>
+            <a-input v-model:value="form.Icon" placeholder="请输入菜单图标" style="width: 200px" />
+            <component :is="$antIcons[form.Icon]" class="smart-margin-left15" style="font-size: 20px" />
+          </template>
+        </IconSelect>
+      </a-form-item>
+      <!-- <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="路由地址" name="path">
           <a-input v-model:value="form.path" placeholder="请输入路由地址" />
-        </a-form-item>
-        <template v-if="form.menuType === MENU_TYPE_ENUM.MENU.value">
-          <a-form-item v-if="form.frameFlag" label="外链地址" name="frameUrl">
+        </a-form-item> -->
+      <!-- <a-form-item v-if="form.frameFlag" label="外链地址" name="frameUrl">
             <a-input v-model:value="form.frameUrl" placeholder="请输入外链地址" />
-          </a-form-item>
-          <a-form-item v-else label="组件地址" name="component" help="比如 商品列表：/business/erp/goods/goods-list.vue">
-            <a-input v-model:value="form.component" placeholder="请输入组件地址 默认带有开头/@/views" />
-          </a-form-item>
-        </template>
-        <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="是否缓存" name="cacheFlag">
+          </a-form-item> -->
+      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="组件地址" name="Code">
+        <a-input v-model:value="form.Code" placeholder="请输入组件地址 默认带有开头/@/views" />
+      </a-form-item>
+      <!-- <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="是否缓存" name="cacheFlag">
           <a-switch v-model:checked="form.cacheFlag" checked-children="开启缓存" un-checked-children="不缓存" />
-        </a-form-item>
-        <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="是否外链" name="frameFlag">
+        </a-form-item> -->
+      <!-- <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="是否外链" name="frameFlag">
           <a-switch v-model:checked="form.frameFlag" checked-children="是外链" un-checked-children="不是外链" />
-        </a-form-item>
-        <a-form-item label="显示状态" name="visibleFlag">
+        </a-form-item> -->
+      <!-- <a-form-item label="显示状态" name="visibleFlag">
           <a-switch v-model:checked="form.visibleFlag" checked-children="显示" un-checked-children="不显示" />
         </a-form-item>
         <a-form-item label="禁用状态" name="disabledFlag">
           <a-switch v-model:checked="form.disabledFlag" :checkedValue="false" :unCheckedValue="true"
             checked-children="启用" un-checked-children="禁用" />
-        </a-form-item>
-      </template>
+        </a-form-item> -->
       <!--      目录 菜单 end   -->
-      <!--      功能点 start   -->
-      <template v-if="form.menuType === MENU_TYPE_ENUM.POINTS.value">
-        <a-form-item label="功能点名称" name="menuName">
-          <a-input v-model:value="form.menuName" placeholder="请输入功能点名称" />
-        </a-form-item>
-        <a-form-item label="功能点关联菜单">
-          <MenuTreeSelect ref="contextMenuTreeSelect" v-model:value="form.contextMenuId" />
-        </a-form-item>
-        <a-form-item label="功能点状态" name="funcDisabledFlag">
-          <a-switch v-model:checked="form.disabledFlag" :checkedValue="false" :unCheckedValue="true"
-            checked-children="启用" un-checked-children="禁用" />
-        </a-form-item>
-        <!-- <a-form-item label="权限类型" name="permsType">
-          <a-radio-group v-model:value="form.permsType">
-            <a-radio v-for="item in MENU_PERMS_TYPE_ENUM" :key="item.value" :value="item.value">
-              {{ item.desc }}
-            </a-radio>
-          </a-radio-group>
-        </a-form-item> -->
-        <a-form-item label="前端权限" name="webPerms" help="用于前端按钮等功能的展示和隐藏，搭配v-privilege使用">
-          <a-input v-model:value="form.webPerms" placeholder="请输入前端权限" />
-        </a-form-item>
-        <!-- <a-form-item label="后端权限" name="apiPerms" help="后端@SaCheckPermission中的权限字符串，多个以英文逗号,分割">
-          <a-input v-model:value="form.apiPerms" placeholder="请输入后端权限" />
-        </a-form-item> -->
-      </template>
-      <!--      功能点 end   -->
-      <a-form-item label="排序" name="sort" help="值越小越靠前">
-        <a-input-number v-model:value="form.sort" :min="0" placeholder="请输入排序" style="width: 100px" />
+      <a-form-item label="排序" name="OrderSort" help="值越小越靠前">
+        <a-input-number v-model:value="form.OrderSort" :min="0" placeholder="请输入排序" style="width: 100px" />
+      </a-form-item>
+      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="按钮">
+        <a-checkbox-group v-model:value="Btns">
+          <a-row>
+            <a-col :span="6" v-for="item in BtnsOptions" :key="item.value">
+              <a-checkbox :value="item.value">{{ item.label }}</a-checkbox>
+            </a-col>
+          </a-row>
+        </a-checkbox-group>
       </a-form-item>
     </a-form>
     <div class="footer">
@@ -102,7 +72,7 @@
 import { message } from 'ant-design-vue';
 import _ from 'lodash';
 import { nextTick, reactive, ref } from 'vue';
-import MenuTreeSelect from './menu-tree-select.vue';
+// import MenuTreeSelect from './menu-tree-select.vue';
 import { menuApi } from '/@/api/system/menu-api';
 import IconSelect from '/@/components/framework/icon-select/index.vue';
 import { MENU_DEFAULT_PARENT_ID, MENU_PERMS_TYPE_ENUM, MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
@@ -120,12 +90,25 @@ const visible = ref(false);
 
 const contextMenuTreeSelect = ref();
 const parentMenuTreeSelect = ref();
-
+const Btns = ref([]);
+const BtnsOptions = ref([]);//按钮集合
 //展开编辑窗口
 async function showDrawer(rowData) {
   Object.assign(form, formDefault);
   if (rowData && !_.isEmpty(rowData)) {
-    Object.assign(form, rowData);
+    form.menuType = rowData.menuType
+    form.Name = rowData.menuName;
+    form.Icon = rowData.icon
+    form.OrderSort = rowData.sort
+    form.menuId = rowData.menuId
+    if (form.menuType == 2) {//菜单调取查询接口
+      form.Code = rowData.component
+      let res = await menuApi.getEnumTypeList({ enumName: 'BtnPermissionEnum' });
+      BtnsOptions.value = res.data.map(item => ({ label: item.Description, value: item.Value }));
+      let confirmBtnList = await menuApi.getSelectBtnListByPid({ menuId: form.menuId });
+      const selectedLabels = confirmBtnList ? confirmBtnList.data : [];
+      Btns.value = res.data.filter(item => selectedLabels.includes(item.Description)).map(item => item.Value);
+    }
     if (form.parentId === MENU_DEFAULT_PARENT_ID) {
       form.parentId = null;
     }
@@ -157,22 +140,22 @@ function onClose() {
 const formRef = ref();
 const formDefault = {
   menuId: undefined,
-  menuName: undefined,
+  Name: undefined,
   menuType: MENU_TYPE_ENUM.CATALOG.value,
-  icon: undefined,
+  Icon: undefined,
   parentId: undefined,
   path: undefined,
-  permsType: MENU_PERMS_TYPE_ENUM.SA_TOKEN.value,
-  webPerms: undefined,
-  apiPerms: undefined,
-  sort: undefined,
-  visibleFlag: true,
-  cacheFlag: false,
+  // permsType: MENU_PERMS_TYPE_ENUM.SA_TOKEN.value,
+  // webPerms: undefined,
+  // apiPerms: undefined,
+  OrderSort: undefined,
+  // visibleFlag: true,
+  // cacheFlag: false,
   component: undefined,
-  contextMenuId: undefined,
-  disabledFlag: false,
-  frameFlag: false,
-  frameUrl: undefined,
+  // contextMenuId: undefined,
+  // disabledFlag: false,
+  // frameFlag: false,
+  // frameUrl: undefined,
 };
 let form = reactive({ ...formDefault });
 
@@ -195,19 +178,9 @@ function continueResetForm() {
 }
 
 const rules = {
-  menuType: [{ required: true, message: '菜单类型不能为空' }],
-  permsType: [{ required: true, message: '权限类型不能为空' }],
-  menuName: [
+  Name: [
     { required: true, message: '菜单名称不能为空' },
     { max: 20, message: '菜单名称不能大于20个字符', trigger: 'blur' },
-  ],
-  frameUrl: [
-    { required: true, message: '外链地址不能为空' },
-    { max: 500, message: '外链地址不能大于500个字符', trigger: 'blur' },
-  ],
-  path: [
-    { required: true, message: '路由地址不能为空' },
-    { max: 100, message: '路由地址不能大于100个字符', trigger: 'blur' },
   ],
 };
 
@@ -233,14 +206,15 @@ const onSubmit = async (continueFlag) => {
   SmartLoading.show();
   try {
     let params = _.cloneDeep(form);
+    console.log("params", params)
     // 若无父级ID 默认设置为0
     if (!params.parentId) {
-      params.parentId = 0;
+      params.Pid = 0;
     }
     if (params.menuId) {
-      await menuApi.updateMenu(params);
+      await menuApi.editPermission(params);
     } else {
-      await menuApi.addMenu(params);
+      await menuApi.addPermission(params);
     }
     message.success(`${params.menuId ? '修改' : '添加'}成功`);
     if (continueFlag) {
@@ -257,7 +231,7 @@ const onSubmit = async (continueFlag) => {
 };
 
 function selectIcon(icon) {
-  form.icon = icon;
+  form.Icon = icon;
 }
 
 // ----------------------- 以下是暴露的方法内容 ------------------------

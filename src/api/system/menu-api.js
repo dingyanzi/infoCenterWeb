@@ -13,15 +13,8 @@ export const menuApi = {
   /**
    * 添加菜单
    */
-  addMenu: (param) => {
-    return postRequest('/menu/add', param);
-  },
-
-  /**
-   * 更新菜单
-   */
-  updateMenu: (param) => {
-    return postRequest('/menu/update', param);
+  addPermission: (param) => {
+    return postRequest('/Permission/AddPermission', param);
   },
 
   /**
@@ -35,7 +28,7 @@ export const menuApi = {
    * 查询所有菜单列表
    */
   queryMenu: (params) => {
-    return postRequest('/menu/query', params);
+    return getRequest('/Permission/GetPermissonList', params);
   },
 
   /**
@@ -51,4 +44,22 @@ export const menuApi = {
   getAuthUrl: () => {
     return getRequest('/menu/auth/url');
   },
+  /**
+   * 获取所有菜单下的操作按钮
+   */
+  getEnumTypeList: (params) => {
+    return getRequest('/BasicInfo/GetEnumTypeList', params);
+  },
+  /**
+  * 获取菜单下已勾选的按钮
+  */
+  getSelectBtnListByPid: (params) => {
+    return getRequest('/Permission/GetSelectBtnListByPid', params);
+  },
+  /**
+  * 修改菜单
+  */
+  editPermission: (params) => {
+    return getRequest('/Permission/EditPermission', params);
+  }
 };

@@ -49,7 +49,7 @@
         </a-form-item>
       </a-row>
 
-      <a-row class="smart-query-form-row" v-show="moreQueryConditionFlag">
+      <!-- <a-row class="smart-query-form-row" v-show="moreQueryConditionFlag">
         <a-form-item label="外链" class="smart-query-form-item">
           <SmartEnumSelect width="120px" enum-name="FLAG_NUMBER_ENUM" v-model:value="queryForm.frameFlag" />
         </a-form-item>
@@ -61,7 +61,7 @@
         <a-form-item label="显示" class="smart-query-form-item">
           <SmartEnumSelect width="120px" enum-name="FLAG_NUMBER_ENUM" v-model:value="queryForm.visibleFlag" />
         </a-form-item>
-      </a-row>
+      </a-row> -->
     </a-form>
 
     <a-card size="small" :bordered="false" :hoverable="true">
@@ -130,7 +130,7 @@
                 type="link" size="small" @click="showAddSub(record)">
                 添加下级
               </a-button>
-              <a-button v-privilege="'system:menu:update'" type="link" size="small"
+              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" type="link" size="small"
                 @click="showDrawer(record)">编辑</a-button>
               <a-button v-privilege="'system:menu:batchDelete'" danger type="link"
                 @click="singleDelete(record)">删除</a-button>
@@ -167,9 +167,9 @@ const menuTypeColorArray = ['red', 'blue', 'orange', 'green'];
 // ------------------------ 查询表单 ------------------------
 const queryFormState = {
   keywords: '',
-  menuType: undefined,
-  frameFlag: undefined,
-  cacheFlag: undefined,
+  // menuType: undefined,
+  // frameFlag: undefined,
+  // cacheFlag: undefined,
   visibleFlag: undefined,
   disabledFlag: undefined,
 };

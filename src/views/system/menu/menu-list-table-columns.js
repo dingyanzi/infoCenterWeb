@@ -36,11 +36,11 @@ export const columns = ref([
     dataIndex: 'component',
     ellipsis: true,
   },
-  {
-    title: '后端权限',
-    dataIndex: 'apiPerms',
-    ellipsis: true,
-  },
+  // {
+  //   title: '后端权限',
+  //   dataIndex: 'apiPerms',
+  //   ellipsis: true,
+  // },
   {
     title: '前端权限',
     dataIndex: 'webPerms',
