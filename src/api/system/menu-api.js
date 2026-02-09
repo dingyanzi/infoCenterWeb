@@ -20,8 +20,8 @@ export const menuApi = {
   /**
    * 批量删除菜单
    */
-  batchDeleteMenu: (menuIdList) => {
-    return getRequest(`/menu/batchDelete?menuIdList=${menuIdList}`);
+  batchDeleteMenu: (param) => {
+    return getRequest(`/Permission/Delete?id=${param}`);
   },
 
   /**
@@ -59,7 +59,13 @@ export const menuApi = {
   /**
   * 修改菜单
   */
-  editPermission: (params) => {
-    return getRequest('/Permission/EditPermission', params);
+  editPermission: (param) => {
+    return postRequest('/Permission/EditPermission', param);
+  },
+  /**
+ * 启用/禁用菜单
+ */
+  editPermissionEnable: (param) => {
+    return getRequest('/Permission/EditPermissionEnable', param);
   }
 };

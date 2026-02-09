@@ -1,15 +1,8 @@
 <template>
 
-  <a-drawer :body-style="{ paddingBottom: '80px' }" :maskClosable="true" :title="form.menuId ? '编辑' : '添加'"
-    :open="visible" :width="600" @close="onClose" destroyOnClose>
+  <a-drawer :body-style="{ paddingBottom: '80px' }" :maskClosable="true" :title="form.Id ? '编辑' : '添加'" :open="visible"
+    :width="600" @close="onClose" destroyOnClose>
     <a-form ref="formRef" :labelCol="{ span: 5 }" :labelWrap="true" :model="form" :rules="rules">
-      <!-- <a-form-item label="菜单类型" name="menuType">
-        <a-radio-group v-model:value="form.menuType" button-style="solid">
-          <a-radio-button v-for="item in MENU_TYPE_ENUM" :key="item.value" :value="item.value">
-            {{ item.desc }}
-          </a-radio-button>
-        </a-radio-group>
-      </a-form-item> -->
       <!-- <a-form-item :label="form.menuType === MENU_TYPE_ENUM.CATALOG.value ? '上级目录' : '上级菜单'">
         <MenuTreeSelect ref="parentMenuTreeSelect" v-model:value="form.parentId" />
       </a-form-item> -->
@@ -51,8 +44,8 @@
       <a-form-item label="排序" name="OrderSort" help="值越小越靠前">
         <a-input-number v-model:value="form.OrderSort" :min="0" placeholder="请输入排序" style="width: 100px" />
       </a-form-item>
-      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="按钮">
-        <a-checkbox-group v-model:value="Btns">
+      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="按钮" name="Btns">
+        <a-checkbox-group v-model:value="form.Btns">
           <a-row>
             <a-col :span="6" v-for="item in BtnsOptions" :key="item.value">
               <a-checkbox :value="item.value">{{ item.label }}</a-checkbox>
@@ -60,18 +53,20 @@
           </a-row>
         </a-checkbox-group>
       </a-form-item>
+      <a-form-item label="描述" name="Description">
+        <a-textarea :rows="2" v-model:value="form.Description" placeholder="请输入描述" />
+      </a-form-item>
     </a-form>
     <div class="footer">
       <a-button style="margin-right: 8px" @click="onClose">取消</a-button>
-      <a-button style="margin-right: 8px" type="primary" @click="onSubmit(false)">提交 </a-button>
-      <a-button v-if="!form.menuId" type="primary" @click="onSubmit(true)">提交并添加下一个 </a-button>
+      <a-button style="margin-right: 8px" type="primary" @click="onSubmit()">提交 </a-button>
     </div>
   </a-drawer>
 </template>
 <script setup>
 import { message } from 'ant-design-vue';
 import _ from 'lodash';
-import { nextTick, reactive, ref } from 'vue';
+import { nextTick, reactive, ref, computed } from 'vue';
 // import MenuTreeSelect from './menu-tree-select.vue';
 import { menuApi } from '/@/api/system/menu-api';
 import IconSelect from '/@/components/framework/icon-select/index.vue';
@@ -90,7 +85,6 @@ const visible = ref(false);
 
 const contextMenuTreeSelect = ref();
 const parentMenuTreeSelect = ref();
-const Btns = ref([]);
 const BtnsOptions = ref([]);//按钮集合
 //展开编辑窗口
 async function showDrawer(rowData) {
@@ -100,17 +94,19 @@ async function showDrawer(rowData) {
     form.Name = rowData.menuName;
     form.Icon = rowData.icon
     form.OrderSort = rowData.sort
-    form.menuId = rowData.menuId
+    form.Id = rowData.menuId
+    form.Pid = rowData.parentId
+    form.Description = rowData.Description
     if (form.menuType == 2) {//菜单调取查询接口
       form.Code = rowData.component
       let res = await menuApi.getEnumTypeList({ enumName: 'BtnPermissionEnum' });
       BtnsOptions.value = res.data.map(item => ({ label: item.Description, value: item.Value }));
-      let confirmBtnList = await menuApi.getSelectBtnListByPid({ menuId: form.menuId });
-      const selectedLabels = confirmBtnList ? confirmBtnList.data : [];
-      Btns.value = res.data.filter(item => selectedLabels.includes(item.Description)).map(item => item.Value);
+      //获取当前菜单已拥有的按钮
+      let confirmBtnList = await menuApi.getSelectBtnListByPid({ Pid: form.Id });
+      form.Btns = confirmBtnList ? confirmBtnList.data : [];
     }
-    if (form.parentId === MENU_DEFAULT_PARENT_ID) {
-      form.parentId = null;
+    if (form.Pid === MENU_DEFAULT_PARENT_ID) {
+      form.Pid = 0;
     }
   }
   visible.value = true;
@@ -139,35 +135,26 @@ function onClose() {
 
 const formRef = ref();
 const formDefault = {
-  menuId: undefined,
-  Name: undefined,
-  menuType: MENU_TYPE_ENUM.CATALOG.value,
-  Icon: undefined,
-  parentId: undefined,
-  path: undefined,
-  // permsType: MENU_PERMS_TYPE_ENUM.SA_TOKEN.value,
-  // webPerms: undefined,
-  // apiPerms: undefined,
-  OrderSort: undefined,
-  // visibleFlag: true,
-  // cacheFlag: false,
-  component: undefined,
-  // contextMenuId: undefined,
-  // disabledFlag: false,
-  // frameFlag: false,
-  // frameUrl: undefined,
+  Id: undefined,//菜单ID
+  Name: undefined,//菜单名称
+  menuType: MENU_TYPE_ENUM.CATALOG.value,//菜单类型
+  Icon: undefined,//菜单图标
+  Pid: undefined,//父级ID
+  OrderSort: undefined,//排序
+  component: undefined,//组件路径
+  Btns: [],//按钮集合
 };
 let form = reactive({ ...formDefault });
 
 function continueResetForm() {
   refreshParentAndContext();
   const menuType = form.menuType;
-  const parentId = form.parentId;
+  const parentId = form.Pid;
   const webPerms = form.webPerms;
   Object.assign(form, formDefault);
   formRef.value.resetFields();
   form.menuType = menuType;
-  form.parentId = parentId;
+  form.Pid = parentId;
   if (form.menuType === MENU_TYPE_ENUM.POINTS.value) {
     form.contextMenuId = parentId;
   }
@@ -177,12 +164,17 @@ function continueResetForm() {
   }
 }
 
-const rules = {
-  Name: [
-    { required: true, message: '菜单名称不能为空' },
-    { max: 20, message: '菜单名称不能大于20个字符', trigger: 'blur' },
-  ],
-};
+const rules = computed(() => {
+  return {
+    Name: [
+      { required: true, message: '菜单名称不能为空' },
+      { max: 20, message: '菜单名称不能大于20个字符', trigger: 'blur' },
+    ],
+    Btns: [
+      { required: form.menuType === MENU_TYPE_ENUM.MENU.value, type: 'array', message: '请选择按钮', trigger: 'change' },
+    ],
+  };
+});
 
 function validateForm(formRef) {
   return new Promise((resolve) => {
@@ -197,7 +189,7 @@ function validateForm(formRef) {
   });
 }
 
-const onSubmit = async (continueFlag) => {
+const onSubmit = async () => {
   let validateFormRes = await validateForm(formRef.value);
   if (!validateFormRes) {
     message.error('参数验证错误，请仔细填写表单数据!');
@@ -208,20 +200,19 @@ const onSubmit = async (continueFlag) => {
     let params = _.cloneDeep(form);
     console.log("params", params)
     // 若无父级ID 默认设置为0
-    if (!params.parentId) {
+    if (!params.Pid) {
       params.Pid = 0;
     }
-    if (params.menuId) {
+    if (params.Id) {
       await menuApi.editPermission(params);
     } else {
+      if (!params.Code) {
+        params.Code = '/'
+      }
       await menuApi.addPermission(params);
     }
-    message.success(`${params.menuId ? '修改' : '添加'}成功`);
-    if (continueFlag) {
-      continueResetForm();
-    } else {
-      onClose();
-    }
+    message.success(`${params.Id ? '修改' : '添加'}成功`);
+    onClose();
     emit('reloadList');
   } catch (error) {
     smartSentry.captureError(error);

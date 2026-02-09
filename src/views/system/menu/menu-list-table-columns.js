@@ -54,7 +54,7 @@ export const columns = ref([
   {
     title: '操作',
     dataIndex: 'operate',
-    width: 170,
+    width: 200,
     align: "center"
   },
 ]);

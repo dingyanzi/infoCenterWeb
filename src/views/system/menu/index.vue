@@ -1,27 +1,9 @@
-<!--
-  * 菜单列表
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-06-12 20:11:39
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
   <div>
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
-        <a-form-item label="关键字" class="smart-query-form-item">
-          <a-input style="width: 300px" v-model:value="queryForm.keywords" placeholder="菜单名称/路由地址/组件路径/权限字符串" />
-        </a-form-item>
-
-        <a-form-item label="类型" class="smart-query-form-item">
-          <SmartEnumSelect width="120px" v-model:value="queryForm.menuType" placeholder="请选择类型"
-            enum-name="MENU_TYPE_ENUM" />
-        </a-form-item>
-
-        <a-form-item label="禁用" class="smart-query-form-item">
-          <SmartEnumSelect width="120px" enum-name="FLAG_NUMBER_ENUM" v-model:value="queryForm.disabledFlag" />
+        <a-form-item label="名称" class="smart-query-form-item">
+          <a-input style="width: 300px" v-model:value="queryForm.keyCode" placeholder="菜单名称" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
@@ -40,28 +22,8 @@
               重置
             </a-button>
           </a-button-group>
-          <a-button class="smart-margin-left20" @click="moreQueryConditionFlag = !moreQueryConditionFlag">
-            <template #icon>
-              <MoreOutlined />
-            </template>
-            {{ moreQueryConditionFlag ? '收起' : '展开' }}
-          </a-button>
         </a-form-item>
       </a-row>
-
-      <!-- <a-row class="smart-query-form-row" v-show="moreQueryConditionFlag">
-        <a-form-item label="外链" class="smart-query-form-item">
-          <SmartEnumSelect width="120px" enum-name="FLAG_NUMBER_ENUM" v-model:value="queryForm.frameFlag" />
-        </a-form-item>
-
-        <a-form-item label="缓存" class="smart-query-form-item">
-          <SmartEnumSelect width="120px" enum-name="FLAG_NUMBER_ENUM" v-model:value="queryForm.cacheFlag" />
-        </a-form-item>
-
-        <a-form-item label="显示" class="smart-query-form-item">
-          <SmartEnumSelect width="120px" enum-name="FLAG_NUMBER_ENUM" v-model:value="queryForm.visibleFlag" />
-        </a-form-item>
-      </a-row> -->
     </a-form>
 
     <a-card size="small" :bordered="false" :hoverable="true">
@@ -86,16 +48,10 @@
           <TableOperator v-model="columns" :tableId="TABLE_ID_CONST.SYSTEM.MENU" :refresh="query" />
         </div>
       </a-row>
-
       <a-table :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" size="small"
         :scroll="{ y: 800 }" :defaultExpandAllRows="true" :dataSource="tableData" bordered :columns="columns"
         :loading="tableLoading" rowKey="menuId" :pagination="false">
         <template #bodyCell="{ text, record, column }">
-          <template v-if="column.dataIndex === 'menuType'">
-            <a-tag :color="menuTypeColorArray[text]">{{ $smartEnumPlugin.getDescByValue('MENU_TYPE_ENUM', text)
-            }}</a-tag>
-          </template>
-
           <template v-if="column.dataIndex === 'component'">
             <span>{{ record.frameFlag ? record.frameUrl : record.component }}</span>
           </template>
@@ -126,14 +82,17 @@
 
           <template v-if="column.dataIndex === 'operate'">
             <div class="smart-table-operate">
-              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" v-privilege="'system:menu:update'"
-                type="link" size="small" @click="showAddSub(record)">
+              <a-button v-if="record.menuType == MENU_TYPE_ENUM.CATALOG.value" type="link" size="small"
+                @click="showAddSub(record)">
                 添加下级
               </a-button>
               <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" type="link" size="small"
                 @click="showDrawer(record)">编辑</a-button>
-              <a-button v-privilege="'system:menu:batchDelete'" danger type="link"
+              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" danger type="link"
                 @click="singleDelete(record)">删除</a-button>
+              <a-button style="font-size: 12px;" size="small" type="primary" @click="updateStatus(record)">{{
+                record.disabledFlag ? '启用' : '禁用'
+              }}</a-button>
             </div>
           </template>
         </template>
@@ -159,23 +118,15 @@ import TableOperator from '/@/components/support/table-operator/index.vue';
 import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
 import { MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
 
-import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
 
 // ------------------------ 表格渲染 ------------------------
 const menuTypeColorArray = ['red', 'blue', 'orange', 'green'];
 
 // ------------------------ 查询表单 ------------------------
 const queryFormState = {
-  keywords: '',
-  // menuType: undefined,
-  // frameFlag: undefined,
-  // cacheFlag: undefined,
-  visibleFlag: undefined,
-  disabledFlag: undefined,
+  keyCode: '',
 };
 const queryForm = reactive({ ...queryFormState });
-//展开更多查询参数
-const moreQueryConditionFlag = ref(true);
 
 // ------------------------ table表格数据和查询方法 ------------------------
 
@@ -192,22 +143,10 @@ onMounted(query);
 async function query() {
   try {
     tableLoading.value = true;
-    const filterConfig = {
-      keywords: FILTER_TYPE.CONTAINS,
-      menuType: FILTER_TYPE.EQUAL,
-      frameFlag: FILTER_TYPE.EQUAL,
-      cacheFlag: FILTER_TYPE.EQUAL,
-      visibleFlag: FILTER_TYPE.EQUAL,
-      disabledFlag: FILTER_TYPE.EQUAL,
-    };
-    const params = {
-      filters: buildFilterParams(queryForm, filterConfig)
-    };
-    let responseModel = await menuApi.queryMenu(params);
+    let responseModel = await menuApi.queryMenu({ keyCode: queryForm.keyCode });
     // 递归构造树形结构，并付给 TableTree组件
     tableData.value = buildMenuTableTree(responseModel.data);
   } catch (e) {
-    smartSentry.captureError(e);
   } finally {
     tableLoading.value = false;
   }
@@ -262,6 +201,33 @@ function confirmBatchDelete(menuArray) {
     }
   }
 }
+
+function updateStatus(record) {
+  const title = record.disabledFlag ? '启用' : '禁用';
+  Modal.confirm({
+    title: `提示`,
+    icon: createVNode(ExclamationCircleOutlined),
+    content: `确认${title}？`,
+    onOk() {
+      requestUpdateStatus(record);
+    },
+    cancelText: '取消',
+    onCancel() { },
+  });
+}
+
+async function requestUpdateStatus(record) {
+  SmartLoading.show();
+  try {
+    await menuApi.editPermissionEnable({ Id: record.menuId, enable: record.disabledFlag });
+    message.success('操作成功!');
+    query();
+  } catch (e) {
+  } finally {
+    SmartLoading.hide();
+  }
+}
+
 
 // -------------- 添加、修改 右侧抽屉 --------------
 const menuOperateModal = ref();
