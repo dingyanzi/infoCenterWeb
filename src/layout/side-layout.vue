@@ -66,11 +66,6 @@
       <!--- 回到顶部 -->
       <a-back-top :target="backTopTarget" :visibilityHeight="80" />
     </a-layout>
-    <!-- 右侧帮助文档 help-doc -->
-    <a-layout-sider v-if="helpDocFlag" v-show="helpDocExpandFlag" theme="light" :width="180" class="help-doc-sider"
-      :trigger="null" style="min-height: 100%">
-      <SideHelpDoc />
-    </a-layout-sider>
   </a-layout>
 </template>
 
@@ -86,7 +81,6 @@ import { smartKeepAlive } from './components/smart-keep-alive';
 import IframeIndex from '/@/components/framework/iframe/iframe-index.vue';
 import watermark from '../lib/smart-watermark';
 import { useUserStore } from '/@/store/modules/system/user';
-import SideHelpDoc from './components/side-help-doc/index.vue';
 import { useRouter } from 'vue-router';
 import { HOME_PAGE_NAME } from '/@/constants/system/home-const';
 import { LAYOUT_ELEMENT_IDS } from '/@/layout/layout-const.js';
@@ -103,10 +97,6 @@ const sideMenuWidth = computed(() => useAppConfigStore().$state.sideMenuWidth);
 const theme = computed(() => useAppConfigStore().$state.sideMenuTheme);
 //是否显示标签页
 const pageTagFlag = computed(() => useAppConfigStore().$state.pageTagFlag);
-// 是否显示帮助文档
-const helpDocFlag = computed(() => useAppConfigStore().$state.helpDocFlag);
-// 是否默认展开帮助文档
-const helpDocExpandFlag = computed(() => useAppConfigStore().$state.helpDocExpandFlag);
 // 是否显示页脚
 const footerFlag = computed(() => useAppConfigStore().$state.footerFlag);
 // 是否显示水印

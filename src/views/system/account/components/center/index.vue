@@ -35,7 +35,7 @@
               <a-textarea class="form-item" v-model:value="form.remark" placeholder="请输入备注" :rows="4" />
             </a-form-item> -->
           </a-form>
-          <a-button type="primary" @click="onSubmit">更新个人信息</a-button>
+          <!-- <a-button type="primary" @click="onSubmit">更新个人信息</a-button> -->
         </a-col>
         <!-- <a-col flex="auto">
           <a-form style="padding-left: 80px" layout="vertical">

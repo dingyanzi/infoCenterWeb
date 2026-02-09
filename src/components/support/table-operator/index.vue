@@ -37,7 +37,6 @@
 
 <script setup>
 import _ from 'lodash';
-import { tableColumnApi } from '/@/api/support/table-column-api';
 import { onMounted, ref, watch, reactive } from 'vue';
 import SmartTableColumnModal from './smart-table-column-modal.vue';
 import { message } from 'ant-design-vue';
@@ -86,30 +85,7 @@ watch(
     deep: true,
   }
 );
-onMounted(buildUserTableColumns);
 
-//构建用户的数据列
-async function buildUserTableColumns() {
-
-  if (!props.tableId) {
-    return;
-  }
-
-  let userTableColumnArray = [];
-  try {
-    let res = await tableColumnApi.getColumns(props.tableId);
-    if (res.data) {
-      try {
-        userTableColumnArray = JSON.parse(res.data);
-      } catch (e1) {
-        smartSentry.captureError(e1);
-      }
-    }
-  } catch (e) {
-    smartSentry.captureError(e);
-  }
-  updateColumn(userTableColumnArray);
-}
 
 // ----------------- 全屏 -------------------
 const fullScreenFlag = ref(false);
@@ -183,9 +159,9 @@ function exitElementFullscreen(element) {
 
 const smartTableColumnModal = ref();
 
-function showModal() {
-  smartTableColumnModal.value.show(newColumn, props.tableId);
-}
+// function showModal() {
+//   smartTableColumnModal.value.show(newColumn, props.tableId);
+// }
 
 // 将弹窗修改的列数据，赋值给原表格 列数组
 function updateColumn(changeColumnArray) {
@@ -218,7 +194,6 @@ watch(
     if (e) {
       originalColumn = _.cloneDeep(props.modelValue);
       newColumn = _.cloneDeep(props.modelValue);
-      buildUserTableColumns();
     }
   },
   { immediate: false }
