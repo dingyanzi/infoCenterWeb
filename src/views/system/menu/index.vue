@@ -29,19 +29,11 @@
     <a-card size="small" :bordered="false" :hoverable="true">
       <a-row class="smart-table-btn-block">
         <div class="smart-table-operate-block">
-          <a-button type="primary" @click="showDrawer">
+          <a-button v-privilege="'system:menu:add'" type="primary" @click="showDrawer">
             <template #icon>
               <PlusOutlined />
             </template>
             {{ $t('system.addMenu') }}
-          </a-button>
-
-          <a-button v-privilege="'system:menu:batchDelete'" type="primary" danger @click="batchDelete"
-            :disabled="!hasSelected">
-            <template #icon>
-              <DeleteOutlined />
-            </template>
-            批量删除
           </a-button>
         </div>
         <div class="smart-table-setting-block">
@@ -82,17 +74,18 @@
 
           <template v-if="column.dataIndex === 'operate'">
             <div class="smart-table-operate">
-              <a-button v-if="record.menuType == MENU_TYPE_ENUM.CATALOG.value" type="link" size="small"
+              <a-button v-if="record.menuType == MENU_TYPE_ENUM.CATALOG.value" type="primary" size="small"
                 @click="showAddSub(record)">
                 添加下级
               </a-button>
-              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" type="link" size="small"
+              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" type="primary" size="small"
                 @click="showDrawer(record)">编辑</a-button>
-              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" danger type="link"
+              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" danger type="primary" size="small"
                 @click="singleDelete(record)">删除</a-button>
-              <a-button style="font-size: 12px;" size="small" type="primary" @click="updateStatus(record)">{{
-                record.disabledFlag ? '启用' : '禁用'
-              }}</a-button>
+              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" style="font-size: 12px;" size="small"
+                type="primary" @click="updateStatus(record)">{{
+                  record.disabledFlag ? '启用' : '禁用'
+                }}</a-button>
             </div>
           </template>
         </template>
@@ -244,3 +237,9 @@ function showAddSub(rowData) {
   menuOperateModal.value.showDrawer(subData);
 }
 </script>
+<style scoped>
+.smart-table-operate button {
+  font-size: 12px !important;
+  margin: 0 3px;
+}
+</style>
