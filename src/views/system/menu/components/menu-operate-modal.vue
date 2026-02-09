@@ -198,17 +198,16 @@ const onSubmit = async () => {
   SmartLoading.show();
   try {
     let params = _.cloneDeep(form);
-    console.log("params", params)
     // 若无父级ID 默认设置为0
     if (!params.Pid) {
       params.Pid = 0;
     }
+    if (params.menuType === MENU_TYPE_ENUM.CATALOG.value) {
+      params.Code = '/'
+    }
     if (params.Id) {
       await menuApi.editPermission(params);
     } else {
-      if (!params.Code) {
-        params.Code = '/'
-      }
       await menuApi.addPermission(params);
     }
     message.success(`${params.Id ? '修改' : '添加'}成功`);
