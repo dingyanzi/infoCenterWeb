@@ -6,6 +6,22 @@ let infoWindow = null;
 let provinceData = {};
 let cityData = {};
 let allPersonList = [];
+let geoJsonLayer = null;
+
+// 定义样式常量
+const defaultStyle = {
+    fillColor: 'rgb(39, 112, 181)',
+    strokeColor: '#459CFF', // 蓝色描边
+    strokeWeight: 1,
+    fillOpacity: 1
+};
+
+const hoverStyle = {
+    fillColor: 'rgba(69, 156, 255, 0.8)',
+    strokeColor: '#459CFF', // 保持蓝色描边
+    strokeWeight: 1,
+    fillOpacity: 0.9
+};
 
 /**
  * 设置高德地图安全密钥
@@ -218,25 +234,10 @@ export function initMap(containerId, onMarkerClick) {
     return AMapLoader.load({
         key: '291535961b0055175f859cad17407bcb',
         version: '2.0',
-        plugins: ['AMap.Scale', 'AMap.DistrictLayer', 'AMap.DistrictSearch'], // 引入简易行政区图插件和搜索插件
+        plugins: ['AMap.Scale', 'AMap.DistrictSearch', 'AMap.GeoJSON'], // 引入GeoJSON插件
     })
         .then((AMap) => {
             AMapObj = AMap;
-            // 创建简易行政区图层（中国）
-            const disCountry = new AMap.DistrictLayer.Country({
-                zIndex: 10,
-                SOC: 'CHN', // 中国
-                depth: 2,   // 深度：2表示展示省份和地级市
-                styles: {
-                    'nation-stroke': '#459CFF', // 国界线颜色
-                    'coastline-stroke': '#459CFF', // 海岸线颜色
-                    'province-stroke': 'rgba(255, 255, 255, 0.5)', // 省界颜色
-                    'city-stroke': 'rgba(255, 255, 255, 0.3)', // 市界颜色，比省界淡一些
-                    'fill': function (props) {
-                        return 'rgb(39, 112, 181)';
-                    }
-                }
-            });
 
             map = new AMap.Map(containerId, {
                 resizeEnable: true,
@@ -244,63 +245,53 @@ export function initMap(containerId, onMarkerClick) {
                 center: [105.122082, 38.0], // 中心点北移以隐藏群岛，保留中国主体
                 viewMode: '3D',
                 showLabel: false, // 不显示底图文字
-                layers: [
-                    disCountry // 只添加行政区图层，实现“仅显示公鸡”效果，无底图
-                ],
                 skyColor: '#001529', // 天空颜色与背景一致作为融合
                 pitch: 0, // 俯视角度，0为垂直
+                layers: [], // 移除默认底图，只保留GeoJSON覆盖物
+                features: [] // 隐藏所有地图要素（背景、道路、建筑、点）
             });
 
+            // 加载GeoJSON数据
+            fetch('/china.geo.json')
+                .then(response => response.json())
+                .then(geoJSON => {
+                    geoJsonLayer = new AMap.GeoJSON({
+                        geoJSON: geoJSON,
+                        getPolygon: function (geojson, lnglats) {
+                            return new AMap.Polygon({
+                                path: lnglats,
+                                ...defaultStyle,
+                                zIndex: 10
+                            });
+                        }
+                    });
+
+                    // 绑定事件
+                    geoJsonLayer.on('mouseover', function (e) {
+                        e.target.setOptions(hoverStyle);
+                    });
+
+                    geoJsonLayer.on('mouseout', function (e) {
+                        e.target.setOptions(defaultStyle);
+                    });
+
+                    // 也是为了支持点击重置或其他交互，可以加上点击事件
+                    // geoJsonLayer.on('click', function(e) { ... });
+
+                    map.add(geoJsonLayer);
+                })
+                .catch(err => console.error('加载GeoJSON失败', err));
+
             // 点击地图空白处关闭信息窗体
-            map.on('click', () => {
+            map.on('click', (e) => {
+                // 如果没有点击到Overlay（GeoJSON的多边形也是Overlay）
+                // 但这里我们希望点击地图任何非交互区都关闭
                 if (infoWindow) {
                     infoWindow.close();
                 }
             });
 
-            // 交互效果变量
-            let hoverAdcode = -1;
-
-            // 监听鼠标移动事件实现Hover变色
-            map.on('mousemove', function (ev) {
-                const px = ev.pixel;
-                // 获取鼠标当前位置的行政区信息
-                const props = disCountry.getDistrictByContainerPos(px);
-
-                if (props) {
-                    const adcode = props.adcode;
-                    if (adcode !== hoverAdcode) {
-                        hoverAdcode = adcode;
-                        // 更新图层样式
-                        disCountry.setStyles({
-                            'nation-stroke': '#459CFF',
-                            'coastline-stroke': '#459CFF',
-                            'province-stroke': 'rgba(255, 255, 255, 0.5)',
-                            'city-stroke': 'rgba(255, 255, 255, 0.3)',
-                            'fill': function (props) {
-                                // 高亮当前悬停的行政区，其他保持原色
-                                return props.adcode == hoverAdcode ? 'rgba(69, 156, 255, 0.8)' : 'rgb(39, 112, 181)';
-                            }
-                        });
-                    }
-                } else {
-                    if (hoverAdcode !== -1) {
-                        hoverAdcode = -1;
-                        // 恢复默认样式
-                        disCountry.setStyles({
-                            'nation-stroke': '#459CFF',
-                            'coastline-stroke': '#459CFF',
-                            'province-stroke': 'rgba(255, 255, 255, 0.5)',
-                            'city-stroke': 'rgba(255, 255, 255, 0.3)',
-                            'fill': function (props) {
-                                return 'rgb(39, 112, 181)';
-                            }
-                        });
-                    }
-                }
-            });
-
-            // 显示省份名称
+            // 显示省份名称和Mark点（数据点）
             initProvinceNames(AMap, map, onMarkerClick);
 
             return map;
