@@ -21,19 +21,19 @@ export const employeeApi = {
    * 员工管理查询
    */
   queryEmployee: (params) => {
-    return postRequest('/employee/query', params);
+    return postRequest('/User/GetUserInfoForPaged', params);
   },
   /**
    * 添加员工
    */
   addEmployee: (params) => {
-    return postRequest('/employee/add', params);
+    return postRequest('/User/AddUser', params);
   },
   /**
    * 更新员工信息
    */
   updateEmployee: (params) => {
-    return postRequest('/employee/update', params);
+    return postRequest('/User/ModifyUser', params);
   },
   /**
    * 更新员工个人中心信息
@@ -68,8 +68,8 @@ export const employeeApi = {
   /**
    * 重置员工密码
    */
-  resetPassword: (employeeId) => {
-    return getRequest(`/employee/update/password/reset/${employeeId}`);
+  resetPassword: (params) => {
+    return getRequest(`/User/ResetUserPassWord`, params);
   },
   /**
    * 修改密码
@@ -86,8 +86,8 @@ export const employeeApi = {
   /**
    * 更新员工禁用状态
    */
-  updateDisabled: (employeeId) => {
-    return getRequest(`/employee/update/disabled/${employeeId}`);
+  updateDisabled: (params) => {
+    return getRequest(`/api/User/ModifyUsable`, params);
   },
   /**
    * 查询员工-根据部门id

@@ -10,15 +10,13 @@
 -->
 <template>
   <a-modal :title="form.roleId ? '编辑角色' : '添加角色'" :width="600" :open="modalVisible" @cancel="onClose" :footer="null">
+    {{ form }}
     <a-form ref="formRef" :model="form" :rules="rules" :labelCol="{ span: 4 }">
-      <a-form-item label="角色名称" name="roleName">
-        <a-input style="width: 100%" placeholder="请输入角色名称" v-model:value="form.roleName" />
-      </a-form-item>
-      <a-form-item label="角色编码" name="roleCode">
-        <a-input style="width: 100%" placeholder="请输入角色编码" v-model:value="form.roleCode" />
+      <a-form-item label="角色名称" name="Name">
+        <a-input style="width: 100%" placeholder="请输入角色名称" v-model:value="form.Name" />
       </a-form-item>
       <a-form-item label="角色备注">
-        <a-input style="width: 100%" placeholder="请输入角色备注" v-model:value="form.remark" />
+        <a-input style="width: 100%" placeholder="请输入角色备注" v-model:value="form.Description" />
       </a-form-item>
     </a-form>
 
@@ -64,17 +62,15 @@
 
   const formDefault = {
     roleId: undefined,
-    remark: undefined,
-    roleCode: undefined,
-    roleName: undefined,
+    Description: undefined,
+    Name: undefined,
   };
 
   let form = reactive({ ...formDefault });
 
   // 表单规则
   const rules = {
-    roleName: [{ required: true, message: '请输入角色名称' }],
-    roleCode: [{ required: true, message: '请输入角色编码' }],
+    Name: [{ required: true, message: '请输入角色名称' }],
   };
 
   // 提交表单
@@ -84,7 +80,7 @@
       .then(async () => {
         SmartLoading.show();
         try {
-          if (form.roleId) {
+          if (form.Id) {
             await roleApi.updateRole(form);
           } else {
             await roleApi.addRole(form);

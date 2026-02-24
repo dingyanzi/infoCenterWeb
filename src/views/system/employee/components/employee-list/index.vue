@@ -12,7 +12,7 @@
     <div class="header">
       <a-typography-title :level="5">部门人员</a-typography-title>
       <div class="query-operate">
-        <a-input-search v-model:value.trim="params.keyword" placeholder="用户名" @search="queryEmployeeByKeyword(true)">
+        <a-input-search v-model:value.trim="params.LoginName" placeholder="用户名" @search="queryEmployeeByKeyword(true)">
           <template #enterButton>
             <a-button type="primary">
               <template #icon>
@@ -41,16 +41,16 @@
 
     <a-table :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" size="small"
       :columns="columns" :data-source="tableData" :pagination="false" :loading="tableLoading" :scroll="{ x: 1500 }"
-      row-key="employeeId" bordered>
+      row-key="Id" bordered>
       <template #bodyCell="{ text, record, index, column }">
-        <template v-if="column.dataIndex === 'administratorFlag'">
-          <a-tag color="error" v-if="text">超管</a-tag>
+         <template v-if="column.dataIndex === 'loginName'">
+          {{ record.LoginName}}
         </template>
-        <template v-if="column.dataIndex === 'disabledFlag'">
-          <a-tag :color="text ? 'error' : 'processing'">{{ text ? '禁用' : '启用' }}</a-tag>
+        <template v-if="column.dataIndex === 'Status'">
+          <a-tag :color="record.Status==0 ? 'error' : 'processing'">{{ record.Status==0 ? '禁用' : '启用' }}</a-tag>
         </template>
-        <template v-else-if="column.dataIndex === 'gender'">
-          <span>{{ $smartEnumPlugin.getDescByValue('GENDER_ENUM', text) }}</span>
+        <template v-else-if="column.dataIndex === 'RoleNames'">
+          <span>{{ record.RoleNames}}</span>
         </template>
         <template v-else-if="column.dataIndex === 'operate'">
           <div class="smart-table-operate">
@@ -66,7 +66,7 @@
     </a-table>
     <div class="smart-query-table-page">
       <a-pagination showSizeChanger showQuickJumper show-less-items :pageSizeOptions="PAGE_SIZE_OPTIONS"
-        :defaultPageSize="params.pageSize" v-model:current="params.pageNum" v-model:pageSize="params.pageSize"
+        :defaultPageSize="params.pageSize" v-model:current="params.CurrentPage" v-model:pageSize="params.pageSize"
         :total="total" @change="queryEmployee" :show-total="showTableTotal" />
     </div>
     <EmployeeFormModal ref="employeeFormModal" @refresh="queryEmployee" @show-account="showAccount" />
@@ -78,7 +78,7 @@
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { message, Modal } from 'ant-design-vue';
 import _ from 'lodash';
-import { computed, createVNode, reactive, ref, watch } from 'vue';
+import { computed, createVNode, reactive, ref, onMounted } from 'vue';
 import { employeeApi } from '/@/api/system/employee-api';
 import { PAGE_SIZE } from '/@/constants/common-const';
 import { SmartLoading } from '/@/components/framework/smart-loading';
@@ -89,11 +89,10 @@ import { PAGE_SIZE_OPTIONS, showTableTotal } from '/@/constants/common-const';
 import { smartSentry } from '/@/lib/smart-sentry';
 import TableOperator from '/@/components/support/table-operator/index.vue';
 import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
-
+import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
 // ----------------------- 以下是字段定义 emits props ---------------------
 
 const props = defineProps({
-  departmentId: Number,
   breadcrumb: Array,
 });
 
@@ -113,12 +112,17 @@ const columns = ref([
   },
   {
     title: '状态',
-    dataIndex: 'disabledFlag',
+    dataIndex: 'Status',
     width: 60,
   },
   {
     title: '角色',
-    dataIndex: 'roleNameList',
+    dataIndex: 'RoleNames',
+    width: 100,
+  },
+  {
+    title: '备注',
+    dataIndex: 'Remark',
     width: 100,
   },
   {
@@ -130,13 +134,12 @@ const columns = ref([
 const tableData = ref();
 
 let defaultParams = {
-  departmentId: undefined,
-  disabledFlag: false,
-  keyword: undefined,
-  searchCount: undefined,
-  pageNum: 1,
+  OrderByFileds: 'Id',
+  LoginName: undefined,
+  CurrentPage: 1,
+  OrderByType: 1,
   pageSize: PAGE_SIZE,
-  sortItemList: undefined,
+  filters:[]
 };
 const params = reactive({ ...defaultParams });
 const total = ref(0);
@@ -148,23 +151,32 @@ function reset() {
 }
 
 const tableLoading = ref(false);
+
 // 查询
 async function queryEmployee() {
   tableLoading.value = true;
+  // 保存LoginName值
+  const loginName = params.LoginName;
+  const filterConfig = {
+    LoginName: FILTER_TYPE.CONTAINS,
+  };
+  params.filters = buildFilterParams(params, filterConfig);
+  // 删除LoginName，确保接口入参中不包含
+  delete params.LoginName;
   try {
-    params.departmentId = props.departmentId;
     let res = await employeeApi.queryEmployee(params);
-    for (const item of res.data.list) {
-      item.roleNameList = _.join(item.roleNameList, ',');
+    for (const item of res.data.Data) {
+      item.RoleNames = _.join(item.RoleNames, ',');
     }
-    tableData.value = res.data.list;
-    total.value = res.data.total;
+    tableData.value = res.data.Data;
+    total.value = res.data.DataCount;
     // 清除选中
     selectedRowKeys.value = [];
     selectedRows.value = [];
   } catch (error) {
-    smartSentry.captureError(error);
   } finally {
+    // 恢复LoginName值，保持输入框中的文字
+    params.LoginName = loginName;
     tableLoading.value = false;
   }
 }
@@ -172,35 +184,45 @@ async function queryEmployee() {
 // 根据关键字 查询
 async function queryEmployeeByKeyword(allDepartment) {
   tableLoading.value = true;
+  // 保存LoginName值
+  const loginName = params.LoginName;
+  const filterConfig = {
+    LoginName: FILTER_TYPE.CONTAINS,
+  };
+  params.filters = buildFilterParams(params, filterConfig);
+  // 删除LoginName，确保接口入参中不包含
+  delete params.LoginName;
   try {
-    params.pageNum = 1;
-    params.departmentId = allDepartment ? undefined : props.departmentId;
+    params.CurrentPage = 1;
     let res = await employeeApi.queryEmployee(params);
-    for (const item of res.data.list) {
-      item.roleNameList = _.join(item.roleNameList, ',');
+     for (const item of res.data.Data) {
+      item.RoleNames = _.join(item.RoleNames, ',');
     }
-    tableData.value = res.data.list;
-    total.value = res.data.total;
+    tableData.value = res.data.Data;
+    total.value = res.data.DataCount;
     // 清除选中
     selectedRowKeys.value = [];
     selectedRows.value = [];
   } catch (error) {
-    smartSentry.captureError(error);
   } finally {
+    // 恢复LoginName值，保持输入框中的文字
+    params.LoginName = loginName;
     tableLoading.value = false;
   }
 }
 
-watch(
-  () => props.departmentId,
-  () => {
-    if (props.departmentId !== params.departmentId) {
-      params.pageNum = 1;
-      queryEmployee();
-    }
-  },
-  { immediate: true }
-);
+onMounted(queryEmployee);
+
+// watch(
+//   () => props.departmentId,
+//   () => {
+//     if (props.departmentId !== params.departmentId) {
+//       params.CurrentPage = 1;
+//       queryEmployee();
+//     }
+//   },
+//   { immediate: true }
+// );
 
 // ----------------------- 多选操作 ---------------------
 
@@ -268,7 +290,6 @@ function showDrawer(rowData) {
   let params = {};
   if (rowData) {
     params = _.cloneDeep(rowData);
-    params.disabledFlag = params.disabledFlag ? 1 : 0;
   } else if (props.departmentId) {
     params.departmentId = props.departmentId;
   }

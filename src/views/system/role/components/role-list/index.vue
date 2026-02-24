@@ -18,11 +18,11 @@
         <a-popover placement="right">
           <template #content>
             <div style="display: flex; flex-direction: column">
-              <a-button type="text" @click="deleteRole(item.roleId)" v-privilege="'system:role:delete'">删除</a-button>
-              <a-button type="text" @click="showRoleFormModal(item)" v-privilege="'system:role:update'">编辑</a-button>
+              <a-button type="text" @click="deleteRole(item.roleId)" >删除</a-button>
+              <a-button type="text" @click="showRoleFormModal(item)" >编辑</a-button>
             </div>
           </template>
-          {{ item.roleName }}
+          {{ item.Name }}
         </a-popover>
       </a-menu-item>
     </a-menu>
@@ -40,15 +40,22 @@ import { smartSentry } from '/@/lib/smart-sentry';
 
 // ----------------------- 角色列表显示 ---------------------
 const roleList = ref([]);
-
+let defaultParams = {
+  OrderByFileds: 'Id',
+  CurrentPage: 1,
+  OrderByType: 1,
+  pageSize: 999,
+  filters:[]
+};
 onMounted(queryAllRole);
 
 // 查询列表
 async function queryAllRole() {
-  let res = await roleApi.queryAll();
-  roleList.value = res.data;
-  if (!_.isEmpty(res.data) && res.data[0].roleId) {
-    selectedKeys.value = [res.data[0].roleId];
+
+  let res = await roleApi.queryAll(defaultParams);
+  roleList.value = res.data.Data;
+  if (!_.isEmpty(res.data) && res.data.Data[0].Id) {
+    selectedKeys.value = [res.data.Data[0].Id];
   }
 }
 
