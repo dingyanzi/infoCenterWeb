@@ -1,17 +1,7 @@
-<!--
-  * 角色 菜单
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-09-12 22:34:00
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
-  *
--->
 <template>
-  <li v-for="module in props.tree" :key="module.menuId">
+  <li v-for="module in props.tree" :key="module.value">
     <div class="menu" :style="{ marginLeft: `${props.index * 4}%` }">
-      <a-checkbox @change="selectCheckbox(module)" class="checked-box-label" :value="module.menuId">{{ module.menuName }} </a-checkbox>
+      <a-checkbox @change="selectCheckbox(module)" class="checked-box-label" :value="module.value">{{ module.label }} </a-checkbox>
       <div v-if="module.children && module.children.some((e) => e.menuType === MENU_TYPE_ENUM.POINTS.value)">
         <RoleTreePoint :tree="module.children" @selectCheckbox="selectCheckbox" />
       </div>
@@ -40,12 +30,12 @@
   defineEmits(['update:value']);
   let roleStore = useRoleStore();
   function selectCheckbox(module) {
-    if (!module.menuId) {
+    if (!module.value) {
       return;
     }
     // 是否勾选
     let checkedData = roleStore.checkedData;
-    let findIndex = checkedData.indexOf(module.menuId);
+    let findIndex = checkedData.indexOf(module.value);
     // 选中
     if (findIndex === -1) {
       // 选中本级以及子级

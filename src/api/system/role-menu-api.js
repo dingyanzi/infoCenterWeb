@@ -9,11 +9,15 @@
  */
 import { getRequest, postRequest } from '/@/lib/axios';
 export const roleMenuApi = {
+  //获取所有菜单树
+  getAllPermissionTree: () => {
+    return getRequest('Permission/GetAllPermissionTree');
+  },
   /**
    * @description: 获取角色关联菜单权限
    */
   getRoleSelectedMenu: (roleId) => {
-    return getRequest(`Role/GetRoleSelectPermissionIds?id=${roleId}`);
+    return getRequest(`Role/GetRoleAllPermissionIds?id=${roleId}`);
   },
   /**
    * @description: 更新角色权限

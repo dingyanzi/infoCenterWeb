@@ -31,9 +31,9 @@ export const useRoleStore = defineStore({
     },
     // 选中本级以及子级
     addCheckedDataAndChildren(data) {
-      let findIndex = this.checkedData.findIndex((val) => val === data.menuId);
-      if (data.menuId && findIndex === -1) {
-        this.addCheckedData(data.menuId);
+      let findIndex = this.checkedData.findIndex((val) => val === data.value);
+      if (data.value && findIndex === -1) {
+        this.addCheckedData(data.value);
       }
       if (data.children) {
         data.children.forEach((item) => {
@@ -47,7 +47,7 @@ export const useRoleStore = defineStore({
     },
     // 取消选中本级以及子级
     deleteCheckedDataAndChildren(data) {
-      let findIndex = this.checkedData.findIndex((val) => val === data.menuId);
+      let findIndex = this.checkedData.findIndex((val) => val === data.value);
       if (findIndex !== -1) {
         this.deleteCheckedData(findIndex);
       }
@@ -60,10 +60,10 @@ export const useRoleStore = defineStore({
     // 初始化权限树对象
     initTreeMap(tree) {
       for (let treeElement of tree) {
-        if (!treeElement.menuId) {
+        if (!treeElement.value) {
           continue;
         }
-        this.treeMap.set(treeElement.menuId, treeElement);
+        this.treeMap.set(treeElement.value, treeElement);
         if (treeElement.children && !_.isEmpty(treeElement.children)) {
           this.initTreeMap(treeElement.children);
         }
@@ -72,7 +72,7 @@ export const useRoleStore = defineStore({
     // 选中上一级
     selectUpperLevel(module) {
       // 拿到上级key
-      let parentId = module.parentId;
+      let parentId = module.Pid;
       if (!parentId) {
         return;
       }
@@ -82,12 +82,12 @@ export const useRoleStore = defineStore({
         return;
       }
       // 选中父级
-      let parentIndex = this.checkedData.findIndex((e) => parentModule.menuId === e);
-      if (parentModule.menuId && parentIndex === -1) {
-        this.addCheckedData(parentModule.menuId);
+      let parentIndex = this.checkedData.findIndex((e) => parentModule.value === e);
+      if (parentModule.value && parentIndex === -1) {
+        this.addCheckedData(parentModule.value);
       }
       // 如果上级还有上级 则进行递归
-      if (parentModule.parentId) {
+      if (parentModule.value) {
         this.selectUpperLevel(parentModule);
       }
     },
