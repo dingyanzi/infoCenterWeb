@@ -87,7 +87,7 @@ export const useRoleStore = defineStore({
         this.addCheckedData(parentModule.value);
       }
       // 如果上级还有上级 则进行递归
-      if (parentModule.value) {
+      if (parentModule.Pid) {
         this.selectUpperLevel(parentModule);
       }
     },

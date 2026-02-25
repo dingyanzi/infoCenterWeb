@@ -16,7 +16,7 @@
       </a-form-item>
       <a-form-item label="角色" name="roleIdList">
         <a-select mode="multiple" v-model:value="form.roleIdList" optionFilterProp="title" placeholder="请选择角色">
-          <a-select-option v-for="item in roleList" :key="item.roleId" :title="item.roleName">{{ item.roleName
+          <a-select-option v-for="item in roleList" :key="item.roleId" :title="item.roleName">{{ item.Name
           }}</a-select-option>
         </a-select>
       </a-form-item>  
