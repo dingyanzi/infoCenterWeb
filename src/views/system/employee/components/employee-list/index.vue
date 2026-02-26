@@ -1,12 +1,3 @@
-<!--
-  *  员工 列表
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-08-08 20:46:18
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
   <a-card class="employee-container">
     <div class="header">
@@ -39,7 +30,7 @@
       </span>
     </div>
 
-    <a-table :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" size="small"
+    <a-table size="small"
       :columns="columns" :data-source="tableData" :pagination="false" :loading="tableLoading" :scroll="{ x: 1500 }"
       row-key="Id" bordered>
       <template #bodyCell="{ text, record, index, column }">
@@ -47,7 +38,7 @@
           {{ record.LoginName}}
         </template>
         <template v-if="column.dataIndex === 'Status'">
-          <a-tag :color="record.Status==0 ? 'error' : 'processing'">{{ record.Status==0 ? '禁用' : '启用' }}</a-tag>
+          <a-tag :color="record.Status==0 ? 'processing' : 'error'">{{ record.Status==0 ? '启用' : '禁用' }}</a-tag>
         </template>
         <template v-else-if="column.dataIndex === 'RoleNames'">
           <span>{{ record.RoleNames}}</span>
@@ -57,8 +48,8 @@
             <a-button type="link" size="small" @click="showDrawer(record)">编辑</a-button>
             <a-button type="link" size="small"
               @click="resetPassword(record.employeeId, record.loginName)">重置密码</a-button>
-            <a-button type="link" @click="updateDisabled(record.employeeId, record.disabledFlag)">{{
-              record.disabledFlag ? '启用' : '禁用'
+            <a-button type="link" @click="updateDisabled(record.employeeId, record.Status)">{{
+              record.Status ? '启用' : '禁用'
             }}</a-button>
           </div>
         </template>
@@ -161,7 +152,6 @@ async function queryEmployee() {
     LoginName: FILTER_TYPE.CONTAINS,
   };
   params.filters = buildFilterParams(params, filterConfig);
-  // 删除LoginName，确保接口入参中不包含
   delete params.LoginName;
   try {
     let res = await employeeApi.queryEmployee(params);

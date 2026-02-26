@@ -1,12 +1,3 @@
-<!--
-  *  员工 表单 弹窗
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-08-08 20:46:18
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
   <a-drawer :title="form.employeeId ? '编辑' : '添加'" :width="600" :open="visible" :body-style="{ paddingBottom: '80px' }"
     @close="onClose" destroyOnClose>
@@ -14,9 +5,9 @@
       <a-form-item label="用户名" name="LoginName">
         <a-input v-model:value.trim="form.LoginName" placeholder="请输入用户名" />
       </a-form-item>
-      <a-form-item label="角色" name="roleIdList">
-        <a-select mode="multiple" v-model:value="form.roleIdList" optionFilterProp="title" placeholder="请选择角色">
-          <a-select-option v-for="item in roleList" :key="item.roleId" :title="item.roleName">{{ item.Name
+      <a-form-item label="角色" name="RoleIds">
+        <a-select mode="multiple" v-model:value="form.RoleIds" optionFilterProp="title" placeholder="请选择角色">
+          <a-select-option v-for="item in roleList" :key="item.Id" :title="item.Name">{{ item.Name
           }}</a-select-option>
         </a-select>
       </a-form-item>  
@@ -52,6 +43,8 @@ function onClose() {
 // 显示
 async function showDrawer(rowData) {
   Object.assign(form, formDefault);
+  form.RoleIds = rowData.RIDs;
+
   if (rowData && !_.isEmpty(rowData)) {
     Object.assign(form, rowData);
   }
@@ -88,7 +81,7 @@ const rules = {
     { required: true, message: '用户名不能为空' },
     { max: 30, message: '登录账号不能大于30个字符', trigger: 'blur' },
   ],
-  roleIdList: [{ required: true, message: '角色不能为空' }],
+  RoleIds: [{ required: true, message: '角色不能为空' }],
 };
 
 // 校验表单
@@ -113,7 +106,7 @@ async function onSubmit(keepAdding) {
     return;
   }
   SmartLoading.show();
-  if (form.employeeId) {
+  if (form.Id) {
     await updateEmployee(keepAdding);
   } else {
     await addEmployee(keepAdding);
@@ -123,8 +116,11 @@ async function onSubmit(keepAdding) {
 async function addEmployee(keepAdding) {
   try {
     let { data } = await employeeApi.addEmployee(form);
+    if(data==null){
+      return
+    }
     message.success('添加成功');
-    emit('show-account', form.loginName, data);
+    emit('show-account', form.LoginName, data);
     if (keepAdding) {
       reset();
     } else {
