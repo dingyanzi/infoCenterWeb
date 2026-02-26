@@ -69,7 +69,7 @@ export const employeeApi = {
    * 重置员工密码
    */
   resetPassword: (params) => {
-    return getRequest(`/User/ResetUserPassWord`, params);
+    return getRequest(`/User/ResetUserPassWord?id=${params}`);
   },
   /**
    * 修改密码
@@ -87,7 +87,7 @@ export const employeeApi = {
    * 更新员工禁用状态
    */
   updateDisabled: (params) => {
-    return getRequest(`/api/User/ModifyUsable`, params);
+    return getRequest(`/User/ModifyUsable?${params}`);
   },
   /**
    * 查询员工-根据部门id

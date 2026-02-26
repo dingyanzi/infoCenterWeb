@@ -91,6 +91,12 @@ smartAxios.interceptors.response.use(
 );
 
 // ================================= 对外提供请求方法：通用请求，get， post, 下载download等 =================================
+/**
+ * delete请求
+ */
+export const deleteRequest = (url, params) => {
+  return request({ url, method: 'delete', params });
+};
 
 /**
  * get请求

@@ -34,22 +34,19 @@
       :columns="columns" :data-source="tableData" :pagination="false" :loading="tableLoading" :scroll="{ x: 1500 }"
       row-key="Id" bordered>
       <template #bodyCell="{ text, record, index, column }">
-         <template v-if="column.dataIndex === 'loginName'">
-          {{ record.LoginName}}
+        <template v-if="column.dataIndex === 'IsDeleted'">
+          <a-tag :color="record.IsDeleted ? 'processing' : 'error'">{{ record.IsDeleted ? '启用' : '禁用' }}</a-tag>
         </template>
-        <template v-if="column.dataIndex === 'Status'">
-          <a-tag :color="record.Status==0 ? 'processing' : 'error'">{{ record.Status==0 ? '启用' : '禁用' }}</a-tag>
-        </template>
-        <template v-else-if="column.dataIndex === 'RoleNames'">
+        <template v-if="column.dataIndex === 'RoleNames'">
           <span>{{ record.RoleNames}}</span>
         </template>
         <template v-else-if="column.dataIndex === 'operate'">
           <div class="smart-table-operate">
             <a-button type="link" size="small" @click="showDrawer(record)">编辑</a-button>
             <a-button type="link" size="small"
-              @click="resetPassword(record.employeeId, record.loginName)">重置密码</a-button>
-            <a-button type="link" @click="updateDisabled(record.employeeId, record.Status)">{{
-              record.Status ? '启用' : '禁用'
+              @click="resetPassword(record.Id, record.LoginName)">重置密码</a-button>
+            <a-button type="link" @click="updateDisabled(record.Id, record.IsDeleted)">{{
+              record.IsDeleted ? '启用' : '禁用'
             }}</a-button>
           </div>
         </template>
@@ -98,12 +95,12 @@ function showAccount(accountName, passWord) {
 const columns = ref([
   {
     title: '用户名',
-    dataIndex: 'loginName',
+    dataIndex: 'LoginName',
     width: 100,
   },
   {
     title: '状态',
-    dataIndex: 'Status',
+    dataIndex: 'IsDeleted',
     width: 60,
   },
   {
@@ -288,6 +285,7 @@ function showDrawer(rowData) {
 
 // 重置密码
 function resetPassword(id, name) {
+  console.log(id, name);
   Modal.confirm({
     title: '提醒',
     icon: createVNode(ExclamationCircleOutlined),
@@ -297,9 +295,8 @@ function resetPassword(id, name) {
     async onOk() {
       SmartLoading.show();
       try {
-        let { data: passWord } = await employeeApi.resetPassword(id);
+        let { res } = await employeeApi.resetPassword(id);
         message.success('重置成功');
-        employeePasswordDialog.value.showModal(name, passWord);
         queryEmployee();
       } catch (error) {
         smartSentry.captureError(error);
@@ -313,18 +310,18 @@ function resetPassword(id, name) {
 }
 
 // 禁用 / 启用
-function updateDisabled(id, disabledFlag) {
+function updateDisabled(id, IsDeleted) {
   Modal.confirm({
     title: '提醒',
     icon: createVNode(ExclamationCircleOutlined),
-    content: `确定要${disabledFlag ? '启用' : '禁用'}吗?`,
+    content: `确定要${IsDeleted ? '启用' : '禁用'}吗?`,
     okText: '确定',
     okType: 'danger',
     async onOk() {
       SmartLoading.show();
       try {
-        await employeeApi.updateDisabled(id);
-        message.success(`${disabledFlag ? '启用' : '禁用'}成功`);
+        await employeeApi.updateDisabled(`id=${id}&isEnable=${!IsDeleted}`);
+        message.success(`${IsDeleted ? '启用' : '禁用'}成功`);
         queryEmployee();
       } catch (error) {
         smartSentry.captureError(error);

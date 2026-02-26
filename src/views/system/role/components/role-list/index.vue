@@ -4,15 +4,16 @@
       <a-button type="primary" size="small" @click="showRoleFormModal">添加</a-button>
     </template>
     <a-menu mode="vertical" v-model:selectedKeys="selectedKeys">
-      <a-menu-item v-for="item in roleList" :key="item.roleId">
+      <a-menu-item v-for="item in roleList" :key="item.Id">
         <a-popover placement="right">
           <template #content>
             <div style="display: flex; flex-direction: column">
-              <a-button type="text" @click="deleteRole(item.roleId)" >删除</a-button>
+              <a-button type="text" @click="deleteRole(item.Id,item.Enabled)" >{{ item.Enabled ? '禁用' : '启用' }}</a-button>
               <a-button type="text" @click="showRoleFormModal(item)" >编辑</a-button>
             </div>
           </template>
-          {{ item.Name }}
+          {{ item.Name }} 
+          <a-tag :color="item.Enabled ? 'green' : 'red'" size="small">{{ item.Enabled ? '已启用' : '已禁用' }}</a-tag>
         </a-popover>
       </a-menu-item>
     </a-menu>
@@ -22,11 +23,11 @@
 <script setup>
 import { message, Modal } from 'ant-design-vue';
 import _ from 'lodash';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref ,createVNode} from 'vue';
 import { roleApi } from '/@/api/system/role-api';
 import { SmartLoading } from '/@/components/framework/smart-loading';
 import RoleFormModal from '../role-form-modal/index.vue';
-import { smartSentry } from '/@/lib/smart-sentry';
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 
 // ----------------------- 角色列表显示 ---------------------
 const roleList = ref([]);
@@ -65,23 +66,20 @@ function showRoleFormModal(role) {
 }
 
 // 删除角色
-function deleteRole(roleId) {
-  if (!roleId) {
-    return;
-  }
+function deleteRole(id,Enabled) {
   Modal.confirm({
-    title: '提示',
-    content: '确定要删除该角色么？',
+    title: '提醒',
+    icon: createVNode(ExclamationCircleOutlined),
+    content: `确定要${Enabled ? '禁用' : '启用'}吗?`,
     okText: '确定',
     okType: 'danger',
     async onOk() {
       SmartLoading.show();
       try {
-        await roleApi.deleteRole(roleId);
-        message.info('删除成功');
+        await roleApi.ModifyRoleUsable(`id=${id}&enable=${!Enabled}`);
+        message.info(`${Enabled ? '禁用' : '启用'}成功`);
         queryAllRole();
       } catch (e) {
-        smartSentry.captureError(e);
       } finally {
         SmartLoading.hide();
       }

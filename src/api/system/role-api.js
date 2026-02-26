@@ -1,4 +1,4 @@
-import { getRequest, postRequest } from '/@/lib/axios';
+import { getRequest, postRequest,deleteRequest } from '/@/lib/axios';
 
 export const roleApi = {
   //获取所有菜单树
@@ -27,11 +27,11 @@ export const roleApi = {
   updateRole: (data) => {
     return postRequest('Role/ModifyRole', data);
   },
-  /**
-   * @description: 删除角色
+   /**
+   * @description:启用禁用角色
    */
-  deleteRole: (roleId) => {
-    return getRequest(`Role/Delete/${roleId}`);
+  ModifyRoleUsable: (params) => {
+    return getRequest(`Role/ModifyRoleUsable?${params}`);
   },
   /**
    * @description: 获取角色成员-员工列表
