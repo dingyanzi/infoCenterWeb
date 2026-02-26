@@ -170,7 +170,7 @@ export const useUserStore = defineStore({
       this.menuTree = buildMenuTree(menuList);
 
       //拥有路由的菜单
-      this.menuRouterList = menuList.filter((e) => e.path || e.frameUrl);
+      this.menuRouterList = menuList.filter((e) => (e.path || e.frameUrl) && e.menuType !== MENU_TYPE_ENUM.POINTS.value && e.menuType !== MENU_TYPE_ENUM.CATALOG.value);
 
       //父级菜单集合
       this.menuParentIdListMap = buildMenuParentIdListMap(this.menuTree);

@@ -18,28 +18,11 @@
           </template>
         </IconSelect>
       </a-form-item>
-      <!-- <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="路由地址" name="path">
-          <a-input v-model:value="form.path" placeholder="请输入路由地址" />
-        </a-form-item> -->
-      <!-- <a-form-item v-if="form.frameFlag" label="外链地址" name="frameUrl">
-            <a-input v-model:value="form.frameUrl" placeholder="请输入外链地址" />
-          </a-form-item> -->
+
       <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="组件地址" name="Code">
         <a-input v-model:value="form.Code" placeholder="请输入组件地址 默认带有开头/@/views" />
       </a-form-item>
-      <!-- <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="是否缓存" name="cacheFlag">
-          <a-switch v-model:checked="form.cacheFlag" checked-children="开启缓存" un-checked-children="不缓存" />
-        </a-form-item> -->
-      <!-- <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="是否外链" name="frameFlag">
-          <a-switch v-model:checked="form.frameFlag" checked-children="是外链" un-checked-children="不是外链" />
-        </a-form-item> -->
-      <!-- <a-form-item label="显示状态" name="visibleFlag">
-          <a-switch v-model:checked="form.visibleFlag" checked-children="显示" un-checked-children="不显示" />
-        </a-form-item>
-        <a-form-item label="禁用状态" name="disabledFlag">
-          <a-switch v-model:checked="form.disabledFlag" :checkedValue="false" :unCheckedValue="true"
-            checked-children="启用" un-checked-children="禁用" />
-        </a-form-item> -->
+
       <!--      目录 菜单 end   -->
       <a-form-item label="排序" name="OrderSort" help="值越小越靠前">
         <a-input-number v-model:value="form.OrderSort" :min="0" placeholder="请输入排序" style="width: 100px" />
@@ -170,9 +153,9 @@ const rules = computed(() => {
       { required: true, message: '菜单名称不能为空' },
       { max: 20, message: '菜单名称不能大于20个字符', trigger: 'blur' },
     ],
-    Btns: [
-      { required: form.menuType === MENU_TYPE_ENUM.MENU.value, type: 'array', message: '请选择按钮', trigger: 'change' },
-    ],
+    // Btns: [
+    //   { required: form.menuType === MENU_TYPE_ENUM.MENU.value, type: 'array', message: '请选择按钮', trigger: 'change' },
+    // ],
   };
 });
 
@@ -202,9 +185,10 @@ const onSubmit = async () => {
     if (!params.Pid) {
       params.Pid = 0;
     }
-    if (params.menuType === MENU_TYPE_ENUM.CATALOG.value) {
+    if (params.menuType == undefined) {
       params.Code = '/'
     }
+    console.log("params", params)
     if (params.Id) {
       await menuApi.editPermission(params);
     } else {
