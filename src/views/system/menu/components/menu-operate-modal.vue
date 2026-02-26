@@ -67,7 +67,7 @@ const emit = defineEmits(['reloadList']);
 const visible = ref(false);
 
 const contextMenuTreeSelect = ref();
-const parentMenuTreeSelect = ref();
+// const parentMenuTreeSelect = ref();
 const BtnsOptions = ref([]);//按钮集合
 //展开编辑窗口
 async function showDrawer(rowData) {
@@ -101,9 +101,9 @@ function refreshParentAndContext() {
     if (contextMenuTreeSelect.value) {
       contextMenuTreeSelect.value.queryMenuTree();
     }
-    if (parentMenuTreeSelect.value) {
-      parentMenuTreeSelect.value.queryMenuTree();
-    }
+    // if (parentMenuTreeSelect.value) {
+    //   parentMenuTreeSelect.value.queryMenuTree();
+    // }
   });
 }
 
@@ -128,24 +128,6 @@ const formDefault = {
   Btns: [],//按钮集合
 };
 let form = reactive({ ...formDefault });
-
-function continueResetForm() {
-  refreshParentAndContext();
-  const menuType = form.menuType;
-  const parentId = form.Pid;
-  const webPerms = form.webPerms;
-  Object.assign(form, formDefault);
-  formRef.value.resetFields();
-  form.menuType = menuType;
-  form.Pid = parentId;
-  if (form.menuType === MENU_TYPE_ENUM.POINTS.value) {
-    form.contextMenuId = parentId;
-  }
-  // 移除最后一个：后面的内容
-  if (webPerms && webPerms.lastIndexOf(':')) {
-    form.webPerms = webPerms.substring(0, webPerms.lastIndexOf(':') + 1);
-  }
-}
 
 const rules = computed(() => {
   return {
