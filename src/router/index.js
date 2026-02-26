@@ -19,6 +19,7 @@ import { useUserStore } from '/@/store/modules/system/user';
 import { localClear, localRead } from '/@/utils/local-util';
 import _ from 'lodash';
 import LocalStorageKeyConst from '/@/constants/local-storage-key-const.js';
+import { MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
 
 export const router = createRouter({
   history: createWebHashHistory(),
@@ -143,7 +144,12 @@ export function buildRoutes(menuRouterList) {
       },
     };
 
-    if (e.frameFlag) {
+    // 目录和功能点类型的菜单不需要加载组件
+    if (e.menuType === MENU_TYPE_ENUM.CATALOG.value || e.menuType === MENU_TYPE_ENUM.POINTS.value) {
+      // 目录类型的菜单可以设置一个默认的组件，或者不设置组件
+      // 功能点类型的菜单也不需要加载组件，因为它们通常是操作按钮
+      // 这里选择不设置组件，因为目录和功能点通常只是导航节点或操作按钮
+    } else if (e.frameFlag) {
       route.component = () => import('../components/framework/iframe/iframe-index.vue');
     } else {
       let componentPath = e.component && e.component.startsWith('/') ? e.component : '/' + e.component;
