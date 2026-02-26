@@ -154,17 +154,17 @@ export const useUserStore = defineStore({
       this.token = data.token;
       this.employeeId = data.employeeId;
       this.avatar = data.avatar;
-      this.loginName = data.RealName;
-      this.actualName = data.RealName;
+      this.loginName = data.LoginName;
+      this.actualName = data.LoginName;
       this.phone = data.phone;
-      this.departmentId = data.departmentId;
-      this.departmentName = data.departmentName;
-      this.needUpdatePwdFlag = data.needUpdatePwdFlag;
-      this.administratorFlag = data.administratorFlag;
-      this.lastLoginIp = data.lastLoginIp;
-      this.lastLoginIpRegion = data.lastLoginIpRegion;
-      this.lastLoginUserAgent = data.lastLoginUserAgent;
-      this.lastLoginTime = data.lastLoginTime;
+      // this.departmentId = data.departmentId;
+      // this.departmentName = data.departmentName;
+      // this.needUpdatePwdFlag = data.needUpdatePwdFlag;
+      // this.administratorFlag = data.administratorFlag;
+      // this.lastLoginIp = data.lastLoginIp;
+      // this.lastLoginIpRegion = data.lastLoginIpRegion;
+      // this.lastLoginUserAgent = data.lastLoginUserAgent;
+      // this.lastLoginTime = data.lastLoginTime;
 
       //菜单权限
       this.menuTree = buildMenuTree(menuList);

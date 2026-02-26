@@ -8,7 +8,7 @@
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
           <a-button-group>
-            <a-button type="primary" @click="query">
+            <a-button type="primary" @click="query" v-privilege="'system:menu:Query'">
               <template #icon>
                 <SearchOutlined />
               </template>
@@ -29,7 +29,7 @@
     <a-card size="small" :bordered="false" :hoverable="true">
       <a-row class="smart-table-btn-block">
         <div class="smart-table-operate-block">
-          <a-button v-privilege="'system:menu:add'" type="primary" @click="showDrawer">
+          <a-button v-privilege="'system:menu:Add'" type="primary" @click="showDrawer">
             <template #icon>
               <PlusOutlined />
             </template>
@@ -47,43 +47,26 @@
           <template v-if="column.dataIndex === 'component'">
             <span>{{ record.frameFlag ? record.frameUrl : record.component }}</span>
           </template>
-
-          <template v-if="column.dataIndex === 'frameFlag'">
-            <span>{{ $smartEnumPlugin.getDescByValue('FLAG_NUMBER_ENUM', text) }}</span>
+          <template v-if="column.dataIndex === 'menuType'">
+            <a-tag :color="menuTypeColorArray[text]">{{ $smartEnumPlugin.getDescByValue('MENU_TYPE_ENUM', text)
+            }}</a-tag>
           </template>
-
-          <template v-if="column.dataIndex === 'permsType'">
-            <span>{{ $smartEnumPlugin.getDescByValue('MENU_PERMS_TYPE_ENUM', text) }}</span>
-          </template>
-
-          <template v-if="column.dataIndex === 'cacheFlag'">
-            <span>{{ $smartEnumPlugin.getDescByValue('FLAG_NUMBER_ENUM', text) }}</span>
-          </template>
-
-          <template v-if="column.dataIndex === 'visibleFlag'">
-            <span>{{ $smartEnumPlugin.getDescByValue('FLAG_NUMBER_ENUM', text) }}</span>
-          </template>
-
-          <template v-if="column.dataIndex === 'disabledFlag'">
-            <span>{{ $smartEnumPlugin.getDescByValue('FLAG_NUMBER_ENUM', text) }}</span>
-          </template>
-
           <template v-if="column.dataIndex === 'icon'">
             <component :is="$antIcons[text]" />
           </template>
 
           <template v-if="column.dataIndex === 'operate'">
             <div class="smart-table-operate">
-              <a-button v-if="record.menuType == MENU_TYPE_ENUM.CATALOG.value" type="primary" size="small"
-                @click="showAddSub(record)">
+              <a-button v-privilege="'system:menu:Add'" v-if="record.menuType == MENU_TYPE_ENUM.CATALOG.value"
+                type="primary" size="small" @click="showAddSub(record)">
                 添加下级
               </a-button>
-              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" type="primary" size="small"
-                @click="showDrawer(record)">编辑</a-button>
+              <a-button v-privilege="'system:menu:Edit'" v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value"
+                type="primary" size="small" @click="showDrawer(record)">编辑</a-button>
               <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" danger type="primary" size="small"
                 @click="singleDelete(record)">删除</a-button>
-              <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" style="font-size: 12px;" size="small"
-                type="primary" @click="updateStatus(record)">{{
+              <a-button v-privilege="'system:menu:Delete'" v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value"
+                style="font-size: 12px;" size="small" type="primary" @click="updateStatus(record)">{{
                   record.disabledFlag ? '启用' : '禁用'
                 }}</a-button>
             </div>
