@@ -23,28 +23,25 @@
     </div>
     <div class="btn-group">
       <a-button class="btn" type="primary" @click="showDrawer">添加成员</a-button>
-      <a-button class="btn" @click="batchDelete" v-privilege="'system:employee:delete'">批量删除</a-button>
 
       <span class="smart-table-column-operate">
         <TableOperator v-model="columns" :tableId="TABLE_ID_CONST.SYSTEM.EMPLOYEE" :refresh="queryEmployee" />
       </span>
     </div>
 
-    <a-table size="small"
-      :columns="columns" :data-source="tableData" :pagination="false" :loading="tableLoading" :scroll="{ x: 1500 }"
-      row-key="Id" bordered>
+    <a-table size="small" :columns="columns" :data-source="tableData" :pagination="false" :loading="tableLoading"
+      :scroll="{ x: 1500 }" row-key="Id" bordered>
       <template #bodyCell="{ text, record, index, column }">
         <template v-if="column.dataIndex === 'IsDeleted'">
           <a-tag :color="record.IsDeleted ? 'processing' : 'error'">{{ record.IsDeleted ? '启用' : '禁用' }}</a-tag>
         </template>
         <template v-if="column.dataIndex === 'RoleNames'">
-          <span>{{ record.RoleNames}}</span>
+          <span>{{ record.RoleNames }}</span>
         </template>
         <template v-else-if="column.dataIndex === 'operate'">
           <div class="smart-table-operate">
             <a-button type="link" size="small" @click="showDrawer(record)">编辑</a-button>
-            <a-button type="link" size="small"
-              @click="resetPassword(record.Id, record.LoginName)">重置密码</a-button>
+            <a-button type="link" size="small" @click="resetPassword(record.Id, record.LoginName)">重置密码</a-button>
             <a-button type="link" @click="updateDisabled(record.Id, record.IsDeleted)">{{
               record.IsDeleted ? '启用' : '禁用'
             }}</a-button>
@@ -58,7 +55,6 @@
         :total="total" @change="queryEmployee" :show-total="showTableTotal" />
     </div>
     <EmployeeFormModal ref="employeeFormModal" @refresh="queryEmployee" @show-account="showAccount" />
-    <EmployeeDepartmentFormModal ref="employeeDepartmentFormModal" @refresh="queryEmployee" />
     <EmployeePasswordDialog ref="employeePasswordDialog" />
   </a-card>
 </template>
@@ -71,7 +67,6 @@ import { employeeApi } from '/@/api/system/employee-api';
 import { PAGE_SIZE } from '/@/constants/common-const';
 import { SmartLoading } from '/@/components/framework/smart-loading';
 import EmployeeFormModal from '../employee-form-modal/index.vue';
-import EmployeeDepartmentFormModal from '../employee-department-form-modal/index.vue';
 import EmployeePasswordDialog from '../employee-password-dialog/index.vue';
 import { PAGE_SIZE_OPTIONS, showTableTotal } from '/@/constants/common-const';
 import { smartSentry } from '/@/lib/smart-sentry';
@@ -127,7 +122,7 @@ let defaultParams = {
   CurrentPage: 1,
   OrderByType: 1,
   pageSize: PAGE_SIZE,
-  filters:[]
+  filters: []
 };
 const params = reactive({ ...defaultParams });
 const total = ref(0);
@@ -182,7 +177,7 @@ async function queryEmployeeByKeyword(allDepartment) {
   try {
     params.CurrentPage = 1;
     let res = await employeeApi.queryEmployee(params);
-     for (const item of res.data.Data) {
+    for (const item of res.data.Data) {
       item.RoleNames = _.join(item.RoleNames, ',');
     }
     tableData.value = res.data.Data;
@@ -221,51 +216,6 @@ const hasSelected = computed(() => selectedRowKeys.value.length > 0);
 function onSelectChange(keyArray, selectRows) {
   selectedRowKeys.value = keyArray;
   selectedRows.value = selectRows;
-}
-
-// 批量删除员工
-function batchDelete() {
-  if (!hasSelected.value) {
-    message.warning('请选择要删除的员工');
-    return;
-  }
-  const actualNameArray = selectedRows.value.map((e) => e.actualName);
-  const employeeIdArray = selectedRows.value.map((e) => e.employeeId);
-  Modal.confirm({
-    title: '确定要删除如下员工吗?',
-    icon: createVNode(ExclamationCircleOutlined),
-    content: _.join(actualNameArray, ','),
-    okText: '删除',
-    okType: 'danger',
-    async onOk() {
-      SmartLoading.show();
-      try {
-        await employeeApi.batchDeleteEmployee(employeeIdArray);
-        message.success('删除成功');
-        queryEmployee();
-        selectedRowKeys.value = [];
-        selectedRows.value = [];
-      } catch (error) {
-        smartSentry.captureError(error);
-      } finally {
-        SmartLoading.hide();
-      }
-    },
-    cancelText: '取消',
-    onCancel() { },
-  });
-}
-
-// 批量更新员工部门
-const employeeDepartmentFormModal = ref();
-
-function updateEmployeeDepartment() {
-  if (!hasSelected.value) {
-    message.warning('请选择要调整部门的员工');
-    return;
-  }
-  const employeeIdArray = selectedRows.value.map((e) => e.employeeId);
-  employeeDepartmentFormModal.value.showModal(employeeIdArray);
 }
 
 // ----------------------- 添加、修改、禁用、重置密码 ------------------------------------
