@@ -36,7 +36,7 @@
         <TableOperator class="smart-margin-bottom5" v-model="columns" :tableId="TABLE_ID_CONST.SUPPORT.CONFIG" :refresh="ajaxQuery" />
       </a-row>
 
-      <a-table size="small" :loading="tableLoading" bordered :dataSource="tableData" :columns="columns" rowKey="configId" :pagination="false">
+      <a-table size="small" :loading="tableLoading" bordered :dataSource="tableData" :columns="columns" rowKey="ID" :pagination="false">
         <template #bodyCell="{ record, column }">
           <template v-if="column.dataIndex === 'action'">
             <div class="smart-table-operate">
