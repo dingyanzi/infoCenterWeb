@@ -75,7 +75,7 @@ export const employeeApi = {
    * 修改密码
    */
   updateEmployeePassword: (param) => {
-    return postEncryptRequest('/employee/update/password', param);
+    return postRequest('/User/ModifyPassWord', param);
   },
   /**
    * 获取密码复杂度
