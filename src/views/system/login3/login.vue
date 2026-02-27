@@ -63,6 +63,21 @@ const formRef = ref();
 const rememberPwd = ref(false);
 
 onMounted(() => {
+  // 读取本地存储的记住密码状态
+  const rememberPwdStatus = localStorage.getItem(LocalStorageKeyConst.REMEMBER_PWD);
+  if (rememberPwdStatus === 'true') {
+    rememberPwd.value = true;
+    // 读取本地存储的用户名和密码
+    const savedUserName = localStorage.getItem(LocalStorageKeyConst.USER_NAME);
+    const savedPassword = localStorage.getItem(LocalStorageKeyConst.USER_PASSWORD);
+    if (savedUserName) {
+      loginForm.userName = savedUserName;
+    }
+    if (savedPassword) {
+      loginForm.password = savedPassword;
+    }
+  }
+  
   document.onkeyup = (e) => {
     if (e.keyCode === 13) {
       onLogin();
@@ -86,6 +101,18 @@ async function onLogin() {
       // 1. 执行登录
       const res = await loginApi.login(encryptPasswordForm);
       localSave(LocalStorageKeyConst.USER_TOKEN, res.data.token ? res.data.token : '');
+      
+      // 处理记住密码
+      if (rememberPwd.value) {
+        localStorage.setItem(LocalStorageKeyConst.REMEMBER_PWD, 'true');
+        localStorage.setItem(LocalStorageKeyConst.USER_NAME, loginForm.userName);
+        localStorage.setItem(LocalStorageKeyConst.USER_PASSWORD, loginForm.password);
+      } else {
+        localStorage.removeItem(LocalStorageKeyConst.REMEMBER_PWD);
+        localStorage.removeItem(LocalStorageKeyConst.USER_NAME);
+        localStorage.removeItem(LocalStorageKeyConst.USER_PASSWORD);
+      }
+      
       message.success('登录成功');
 
       // 2. 并发获取: 用户信息 + 菜单权限树

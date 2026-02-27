@@ -30,4 +30,10 @@ export default {
   NOTICE_READ: `${KEY_PREFIX}notice_read`,
   // 待办
   TO_BE_DONE: `${KEY_PREFIX}to_be_done`,
+  // 记住密码
+  REMEMBER_PWD: `${KEY_PREFIX}remember_pwd`,
+  // 存储的用户名
+  USER_NAME: `${KEY_PREFIX}user_name`,
+  // 存储的密码
+  USER_PASSWORD: `${KEY_PREFIX}user_password`,
 };

@@ -81,7 +81,7 @@ function showUpdatePwdModal() {
 
 const avatarName = ref('');
 const avatar = computed(() => useUserStore().avatar);
-const actualName = computed(() => useUserStore().loginName);
+const actualName = computed(() => useUserStore().actualName);
 
 // 更新头像信息
 function updateAvatar() {

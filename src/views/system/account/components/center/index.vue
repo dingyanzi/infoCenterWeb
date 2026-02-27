@@ -18,10 +18,10 @@
             <a-form-item label="员工名称" name="actualName">
               <a-input class="form-item" v-model:value.trim="form.actualName" placeholder="请输入员工名称" />
             </a-form-item>
-            <a-form-item label="性别" name="gender">
+            <!-- <a-form-item label="性别" name="gender">
               <smart-enum-select class="form-item" v-model:value="form.gender" placeholder="请选择性别"
                 enum-name="GENDER_ENUM" />
-            </a-form-item>
+            </a-form-item> -->
             <!-- <a-form-item label="手机号码" name="phone">
               <a-input class="form-item" v-model:value.trim="form.phone" placeholder="请输入手机号码" />
             </a-form-item>

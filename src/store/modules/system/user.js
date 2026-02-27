@@ -155,7 +155,8 @@ export const useUserStore = defineStore({
       this.employeeId = data.employeeId;
       this.avatar = data.avatar;
       this.loginName = data.LoginName;
-      this.actualName = data.LoginName;
+      // admin 的 actualName 为超级管理员
+      this.actualName = data.LoginName === 'admin' ? '超级管理员' : data.LoginName;
       this.phone = data.phone;
       // this.departmentId = data.departmentId;
       // this.departmentName = data.departmentName;
