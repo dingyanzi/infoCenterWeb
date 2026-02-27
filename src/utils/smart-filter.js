@@ -14,23 +14,30 @@ export const FILTER_TYPE = {
  * 构建筛选参数
  * @param {Object} queryForm
  * @param {Object} config e.g. { keywords: FILTER_TYPE.CONTAINS }
- * @returns {Array} filters
+ * @returns {Object} { filters: Array, cleanQueryForm: Object }
  */
 export function buildFilterParams(queryForm, config) {
     const filters = [];
+    const cleanQueryForm = {};
+    
     for (const key in queryForm) {
-        // Check if the property is in the form and has a configuration
-        if (Object.prototype.hasOwnProperty.call(queryForm, key) && config[key] !== undefined) {
-            const value = queryForm[key];
-            // Only add if value is not empty/null/undefined
-            if (value !== undefined && value !== null && value !== '') {
-                filters.push({
-                    fieldName: key,
-                    fieldValue: value,
-                    conditionalType: config[key],
-                });
+        if (Object.prototype.hasOwnProperty.call(queryForm, key)) {
+            if (config[key] !== undefined) {
+                const value = queryForm[key];
+                // Only add if value is not empty/null/undefined
+                if (value !== undefined && value !== null && value !== '') {
+                    filters.push({
+                        fieldName: key,
+                        fieldValue: value,
+                        conditionalType: config[key],
+                    });
+                }
+            } else {
+                // Add non-filter fields to cleanQueryForm
+                cleanQueryForm[key] = queryForm[key];
             }
         }
     }
-    return filters;
+    
+    return { filters, cleanQueryForm };
 }

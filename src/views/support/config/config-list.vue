@@ -1,18 +1,9 @@
-<!--
-  * 系统设置 列表
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-06-08 21:50:41
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
   <div>
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
-        <a-form-item label="参数Key" class="smart-query-form-item">
-          <a-input style="width: 300px" v-model:value="queryForm.configKey" placeholder="请输入key" />
+        <a-form-item label="参数类型" class="smart-query-form-item">
+          <a-input style="width: 300px" v-model:value="queryForm.ParamType" placeholder="请输入参数类型" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
@@ -62,7 +53,7 @@
           show-less-items
           :pageSizeOptions="PAGE_SIZE_OPTIONS"
           :defaultPageSize="queryForm.pageSize"
-          v-model:current="queryForm.pageNum"
+          v-model:current="queryForm.currentPage"
           v-model:pageSize="queryForm.pageSize"
           :total="total"
           @change="ajaxQuery"
@@ -81,42 +72,38 @@
   import { smartSentry } from '/@/lib/smart-sentry';
   import TableOperator from '/@/components/support/table-operator/index.vue';
   import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
+  import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
 
   const columns = ref([
     {
-      title: 'id',
+      title: '序号',
       width: 50,
-      dataIndex: 'configId',
+      dataIndex: 'ParamIndex',
     },
     {
-      title: '参数key',
-      dataIndex: 'configKey',
-      ellipsis: true,
-    },
-    {
-      title: '参数名称',
-      dataIndex: 'configName',
+      title: '参数类型',
+      dataIndex: 'ParamType',
       ellipsis: true,
     },
     {
       title: '参数值',
-      dataIndex: 'configValue',
+      dataIndex: 'ParamValue',
       ellipsis: true,
     },
     {
       title: '备注',
-      dataIndex: 'remark',
+      dataIndex: 'Note',
       ellipsis: true,
       width: 150,
     },
     {
       title: '创建时间',
-      dataIndex: 'createTime',
+      dataIndex: 'CreateTime',
       width: 150,
     },
     {
       title: '修改时间',
-      dataIndex: 'updateTime',
+      dataIndex: 'UpdateTime',
       width: 150,
     },
 
@@ -131,9 +118,11 @@
   // ---------------- 查询数据 -----------------------
 
   const queryFormState = {
-    configKey: '',
-    pageNum: 1,
+    currentPage: 1,
     pageSize: 10,
+    OrderByType: 1,
+    OrderByFileds: "CreateTime",
+    filters: []
   };
   const queryForm = reactive({ ...queryFormState });
 
@@ -147,14 +136,19 @@
   }
 
   function onSearch() {
-    queryForm.pageNum = 1;
+    queryForm.currentPage = 1;
     ajaxQuery();
   }
 
   async function ajaxQuery() {
+    const filterConfig = {
+      ParamType: FILTER_TYPE.CONTAINS,
+    };
+    const { filters, cleanQueryForm } = buildFilterParams(queryForm, filterConfig);
+    cleanQueryForm.filters = filters;
     try {
       tableLoading.value = true;
-      let responseModel = await configApi.queryList(queryForm);
+      let responseModel = await configApi.queryList(cleanQueryForm);
       const list = responseModel.data.list;
       total.value = responseModel.data.total;
       tableData.value = list;

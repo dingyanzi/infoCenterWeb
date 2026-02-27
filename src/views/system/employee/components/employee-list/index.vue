@@ -138,15 +138,13 @@ const tableLoading = ref(false);
 // 查询
 async function queryEmployee() {
   tableLoading.value = true;
-  // 保存LoginName值
-  const loginName = params.LoginName;
   const filterConfig = {
     LoginName: FILTER_TYPE.CONTAINS,
   };
-  params.filters = buildFilterParams(params, filterConfig);
-  delete params.LoginName;
+  const { filters, cleanQueryForm } = buildFilterParams(params, filterConfig);
+  cleanQueryForm.filters = filters;
   try {
-    let res = await employeeApi.queryEmployee(params);
+    let res = await employeeApi.queryEmployee(cleanQueryForm);
     for (const item of res.data.Data) {
       item.RoleNames = _.join(item.RoleNames, ',');
     }
@@ -157,8 +155,6 @@ async function queryEmployee() {
     selectedRows.value = [];
   } catch (error) {
   } finally {
-    // 恢复LoginName值，保持输入框中的文字
-    params.LoginName = loginName;
     tableLoading.value = false;
   }
 }
@@ -166,17 +162,14 @@ async function queryEmployee() {
 // 根据关键字 查询
 async function queryEmployeeByKeyword(allDepartment) {
   tableLoading.value = true;
-  // 保存LoginName值
-  const loginName = params.LoginName;
   const filterConfig = {
     LoginName: FILTER_TYPE.CONTAINS,
   };
-  params.filters = buildFilterParams(params, filterConfig);
-  // 删除LoginName，确保接口入参中不包含
-  delete params.LoginName;
+  const { filters, cleanQueryForm } = buildFilterParams(params, filterConfig);
+  cleanQueryForm.filters = filters;
   try {
-    params.CurrentPage = 1;
-    let res = await employeeApi.queryEmployee(params);
+    cleanQueryForm.CurrentPage = 1;
+    let res = await employeeApi.queryEmployee(cleanQueryForm);
     for (const item of res.data.Data) {
       item.RoleNames = _.join(item.RoleNames, ',');
     }
@@ -187,8 +180,6 @@ async function queryEmployeeByKeyword(allDepartment) {
     selectedRows.value = [];
   } catch (error) {
   } finally {
-    // 恢复LoginName值，保持输入框中的文字
-    params.LoginName = loginName;
     tableLoading.value = false;
   }
 }
