@@ -8,7 +8,7 @@
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
           <a-button-group>
-            <a-button type="primary" @click="onSearch" v-privilege="'support:config:query'">
+            <a-button type="primary" @click="onSearch">
               <template #icon>
                 <SearchOutlined />
               </template>
