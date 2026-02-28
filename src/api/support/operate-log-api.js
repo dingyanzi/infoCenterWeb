@@ -12,7 +12,7 @@ import { postRequest, getRequest } from '/@/lib/axios';
 export const operateLogApi = {
   // 分页查询 @author 卓大
   queryList: (param) => {
-    return postRequest('/support/operateLog/page/query', param);
+    return postRequest('/Log/GetOperateLogForPaged', param);
   },
   // 详情 @author 卓大
   detail: (id) => {

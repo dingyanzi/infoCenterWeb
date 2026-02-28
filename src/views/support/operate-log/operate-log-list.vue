@@ -1,35 +1,11 @@
-<!--
-  * 操作记录 列表
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-06-02 20:23:08
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
-  <a-form class="smart-query-form" v-privilege="'support:operateLog:query'">
+  <!-- <a-form class="smart-query-form" v-privilege="'support:operateLog:query'">
     <a-row class="smart-query-form-row">
-      <a-form-item label="操作关键字" class="smart-query-form-item">
-        <a-input style="width: 150px" v-model:value="queryForm.keywords" placeholder="模块/操作内容" />
+      <a-form-item label="创建人" class="smart-query-form-item">
+        <a-input style="width: 150px" v-model:value="queryForm.CreateBy" placeholder="模块/操作内容" />
       </a-form-item>
-      <a-form-item label="请求关键字" class="smart-query-form-item">
-        <a-input style="width: 270px" v-model:value="queryForm.requestKeywords" placeholder="请求地址/请求方法/请求参数/返回结果" />
-      </a-form-item>
-      <a-form-item label="用户名称" class="smart-query-form-item">
-        <a-input style="width: 100px" v-model:value="queryForm.userName" placeholder="用户名称" />
-      </a-form-item>
-
-      <a-form-item label="请求时间" class="smart-query-form-item">
-        <a-range-picker @change="changeCreateDate" v-model:value="createDateRange" :presets="defaultChooseTimeRange" style="width: 240px" />
-      </a-form-item>
-
-      <a-form-item label="状态：" class="smart-query-form-item">
-        <a-radio-group v-model:value="queryForm.successFlag" @change="onSearch">
-          <a-radio-button :value="undefined">全部</a-radio-button>
-          <a-radio-button :value="true">成功</a-radio-button>
-          <a-radio-button :value="false">失败</a-radio-button>
-        </a-radio-group>
+      <a-form-item label="详细操作" class="smart-query-form-item">
+        <a-input style="width: 100px" v-model:value="queryForm.Remarks" placeholder="用户名称" />
       </a-form-item>
 
       <a-form-item class="smart-query-form-item smart-margin-left10">
@@ -49,7 +25,7 @@
         </a-button-group>
       </a-form-item>
     </a-row>
-  </a-form>
+  </a-form> -->
 
   <a-card size="small" :bordered="false" :hoverable="true" >
     <a-row justify="end">
@@ -88,9 +64,9 @@
         showQuickJumper
         show-less-items
         :pageSizeOptions="PAGE_SIZE_OPTIONS"
-        :defaultPageSize="queryForm.pageSize"
-        v-model:current="queryForm.pageNum"
-        v-model:pageSize="queryForm.pageSize"
+        :defaultPageSize="queryForm.PageSize"
+        v-model:current="queryForm.CurrentPage"
+        v-model:PageSize="queryForm.PageSize"
         :total="total"
         @change="ajaxQuery"
         :show-total="(total) => `共${total}条`"
@@ -105,12 +81,11 @@
   import OperateLogDetailModal from './operate-log-detail-modal.vue';
   import { operateLogApi } from '/@/api/support/operate-log-api';
   import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
-  import { defaultTimeRanges } from '/@/lib/default-time-ranges';
   import uaparser from 'ua-parser-js';
   import { smartSentry } from '/@/lib/smart-sentry';
   import TableOperator from '/@/components/support/table-operator/index.vue';
   import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
-
+  import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
   const columns = ref([
     {
       title: '用户',
@@ -173,23 +148,15 @@
   ]);
 
   const queryFormState = {
-    userName: '',
-    requestKeywords: '',
-    keywords: '',
-    successFlag: undefined,
-    startDate: undefined,
-    endDate: undefined,
-    pageNum: 1,
-    pageSize: 10,
+    // Remarks: '',
+    // CreateBy: '',
+    OrderByType:'1',
+    OrderByFileds:'CreateTime',
+    CurrentPage: 1,
+    PageSize: 10,
   };
   const queryForm = reactive({ ...queryFormState });
   const createDateRange = ref([]);
-  const defaultChooseTimeRange = defaultTimeRanges;
-  // 时间变动
-  function changeCreateDate(dates, dateStrings) {
-    queryForm.startDate = dateStrings[0];
-    queryForm.endDate = dateStrings[1];
-  }
 
   const tableLoading = ref(false);
   const tableData = ref([]);
@@ -202,16 +169,23 @@
   }
 
   function onSearch() {
-    queryForm.pageNum = 1;
+    queryForm.CurrentPage = 1;
     ajaxQuery();
   }
 
   async function ajaxQuery() {
+    // const filterConfig = {
+    //  CreateBy: FILTER_TYPE.CONTAINS,
+    //  TrayCode: FILTER_TYPE.CONTAINS,
+    //  Remarks: FILTER_TYPE.CONTAINS,
+    // };
+    // const { filters, cleanQueryForm } = buildFilterParams(queryForm, filterConfig);
+    // cleanQueryForm.filters = filters;
     try {
       tableLoading.value = true;
       let responseModel = await operateLogApi.queryList(queryForm);
 
-      for (const e of responseModel.data.list) {
+      for (const e of responseModel.data.Data) {
         if(e.response){
           e.response = JSON.parse(e.response);
         }
@@ -225,7 +199,7 @@
         e.device = ua.device.vendor ? ua.device.vendor + ua.device.model : '';
       }
 
-      const list = responseModel.data.list;
+      const list = responseModel.data.Data;
       total.value = responseModel.data.total;
       tableData.value = list;
     } catch (e) {
