@@ -2,6 +2,7 @@ import { message, Modal } from 'ant-design-vue';
 import axios from 'axios';
 import { localRead } from '/@/utils/local-util';
 import { useUserStore } from '/@/store/modules/system/user';
+import { useAppConfigStore } from '/@/store/modules/system/app-config';
 import { decryptData, encryptData } from './encrypt';
 import { DATA_TYPE_ENUM } from '../constants/common-const';
 import _ from 'lodash';
@@ -32,6 +33,27 @@ smartAxios.interceptors.request.use(
     } else {
       delete config.headers[TOKEN_HEADER];
     }
+    
+    // 添加 accept-language 请求头，与当前语言设置保持同步
+    const appConfigStr = localRead(LocalStorageKeyConst.APP_CONFIG);
+    if (appConfigStr) {
+      try {
+        const appConfig = JSON.parse(appConfigStr);
+        if (appConfig.language) {
+          // 将语言代码转换为 HTTP accept-language 格式
+          let acceptLanguage = appConfig.language;
+          if (appConfig.language === 'zh_CN') {
+            acceptLanguage = 'zh-CN,zh;q=0.9';
+          } else if (appConfig.language === 'en_US') {
+            acceptLanguage = 'en-US,en;q=0.9';
+          }
+          config.headers['Accept-Language'] = acceptLanguage;
+        }
+      } catch (e) {
+        console.error('Error parsing app config:', e);
+      }
+    }
+    
     return config;
   },
   (error) => {

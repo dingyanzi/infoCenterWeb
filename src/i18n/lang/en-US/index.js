@@ -44,4 +44,7 @@ export default {
   'login.loginBtn': 'Login',
   'login.loginSuccess': 'Login successful',
 
+  'header.avatar.personalCenter': 'Personal Center',
+  'header.avatar.changePassword': 'Change Password',
+  'header.avatar.logout': 'Logout',
 };

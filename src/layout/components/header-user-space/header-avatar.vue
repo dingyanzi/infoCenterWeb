@@ -20,13 +20,13 @@
     <template #overlay>
       <a-menu :class="['avatar-menu']">
         <a-menu-item @click="toAccount()">
-          <span>个人中心</span>
+          <span>{{ $t('header.avatar.personalCenter') }}</span>
         </a-menu-item>
         <a-menu-item @click="toAccount(ACCOUNT_MENU.PASSWORD.menuId)">
-          <span>修改密码</span>
+          <span>{{ $t('header.avatar.changePassword') }}</span>
         </a-menu-item>
         <a-menu-item @click="onLogout">
-          <span>退出登录</span>
+          <span>{{ $t('header.avatar.logout') }}</span>
         </a-menu-item>
       </a-menu>
     </template>

@@ -41,4 +41,7 @@ export default {
   'login.rememberPwd': '记住密码',
   'login.loginBtn': '登录',
   'login.loginSuccess': '登录成功',
+  'header.avatar.personalCenter': '个人中心',
+  'header.avatar.changePassword': '修改密码',
+  'header.avatar.logout': '退出登录',
 };
