@@ -32,17 +32,47 @@ if (appConfigStr) {
  * 获取初始化的语言
  */
 export const getInitializedLanguage = function () {
-  return language;
+  // 每次调用都重新读取本地存储的语言设置
+  const appConfigStr = localStorage.getItem(localStorageKeyConst.APP_CONFIG);
+  console.log('Reading language from local storage:', appConfigStr);
+  if (appConfigStr) {
+    try {
+      const appConfig = JSON.parse(appConfigStr);
+      console.log('Parsed app config:', appConfig);
+      if (appConfig.language) {
+        console.log('Found language:', appConfig.language);
+        return appConfig.language;
+      }
+    } catch (e) {
+      console.error('Error parsing app config:', e);
+      smartSentry.captureError(e);
+    }
+  }
+  console.log('Using default language:', appDefaultConfig.language);
+  return appDefaultConfig.language;
 };
 
 export const useAppConfigStore = defineStore({
   id: 'appConfig',
-  state: () => ({
-    // 读取config下的默认配置
-    ...state,
-    // 全屏
-    fullScreenFlag: false,
-  }),
+  state: () => {
+    // 重新读取本地存储的配置
+    let currentState = { ...appDefaultConfig };
+    const appConfigStr = localRead(localStorageKeyConst.APP_CONFIG);
+    if (appConfigStr) {
+      try {
+        const appConfig = JSON.parse(appConfigStr);
+        currentState = { ...currentState, ...appConfig };
+      } catch (e) {
+        smartSentry.captureError(e);
+      }
+    }
+    return {
+      // 读取config下的默认配置
+      ...currentState,
+      // 全屏
+      fullScreenFlag: false,
+    };
+  },
   actions: {
     reset() {
       for (const k in appDefaultConfig) {

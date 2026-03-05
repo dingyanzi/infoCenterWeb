@@ -11,7 +11,31 @@
 import en_US from './lang/en-US/index';
 import zh_CN from './lang/zh-CN/index';
 import { createI18n } from 'vue-i18n';
-import { getInitializedLanguage } from '/@/store/modules/system/app-config';
+import localStorageKeyConst from '/@/constants/local-storage-key-const';
+
+/**
+ * 获取初始化的语言
+ */
+function getInitializedLanguage() {
+  // 读取本地存储的语言设置
+  const appConfigStr = localStorage.getItem(localStorageKeyConst.APP_CONFIG);
+  console.log('i18n initialization - Reading language from local storage:', appConfigStr);
+  if (appConfigStr) {
+    try {
+      const appConfig = JSON.parse(appConfigStr);
+      console.log('i18n initialization - Parsed app config:', appConfig);
+      if (appConfig.language) {
+        console.log('i18n initialization - Found language:', appConfig.language);
+        return appConfig.language;
+      }
+    } catch (e) {
+      console.error('i18n initialization - Error parsing app config:', e);
+    }
+  }
+  // 默认语言
+  console.log('i18n initialization - Using default language: zh_CN');
+  return 'zh_CN';
+}
 
 // 语言选择数组
 export const i18nList = [
