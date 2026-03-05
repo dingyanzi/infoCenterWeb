@@ -1,15 +1,15 @@
 <template>
   <a-card class="employee-container">
     <div class="header">
-      <a-typography-title :level="5">部门人员</a-typography-title>
+      <a-typography-title :level="5">{{ t('employee.list.title') }}</a-typography-title>
       <div class="query-operate">
-        <a-input-search v-model:value.trim="params.LoginName" placeholder="用户名" @search="queryEmployeeByKeyword(true)">
+        <a-input-search v-model:value.trim="params.LoginName" :placeholder="t('employee.list.search.placeholder')" @search="queryEmployeeByKeyword(true)">
           <template #enterButton>
             <a-button type="primary">
               <template #icon>
                 <SearchOutlined />
               </template>
-              查询
+              {{ t('employee.list.button.search') }}
             </a-button>
           </template>
         </a-input-search>
@@ -17,12 +17,12 @@
           <template #icon>
             <ReloadOutlined />
           </template>
-          重置
+          {{ t('employee.list.button.reset') }}
         </a-button>
       </div>
     </div>
     <div class="btn-group">
-      <a-button class="btn" type="primary" @click="showDrawer">添加成员</a-button>
+      <a-button class="btn" type="primary" @click="showDrawer">{{ t('employee.list.button.add') }}</a-button>
 
       <span class="smart-table-column-operate">
         <TableOperator v-model="columns" :tableId="TABLE_ID_CONST.SYSTEM.EMPLOYEE" :refresh="queryEmployee" />
@@ -33,17 +33,17 @@
       :scroll="{ x: 1500 }" row-key="Id" bordered>
       <template #bodyCell="{ text, record, index, column }">
         <template v-if="column.dataIndex === 'IsDeleted'">
-          <a-tag :color="record.IsDeleted ? 'processing' : 'error'">{{ record.IsDeleted ? '启用' : '禁用' }}</a-tag>
+          <a-tag :color="record.IsDeleted ? 'processing' : 'error'">{{ record.IsDeleted ? t('employee.list.operate.enable') : t('employee.list.operate.disable') }}</a-tag>
         </template>
         <template v-if="column.dataIndex === 'RoleNames'">
           <span>{{ record.RoleNames }}</span>
         </template>
         <template v-else-if="column.dataIndex === 'operate'">
           <div class="smart-table-operate">
-            <a-button type="link" size="small" @click="showDrawer(record)">编辑</a-button>
-            <a-button type="link" size="small" @click="resetPassword(record.Id, record.LoginName)">重置密码</a-button>
+            <a-button type="link" size="small" @click="showDrawer(record)">{{ t('employee.list.operate.edit') }}</a-button>
+            <a-button type="link" size="small" @click="resetPassword(record.Id, record.LoginName)">{{ t('employee.list.operate.resetPassword') }}</a-button>
             <a-button type="link" @click="updateDisabled(record.Id, record.IsDeleted)">{{
-              record.IsDeleted ? '启用' : '禁用'
+              record.IsDeleted ? t('employee.list.operate.enable') : t('employee.list.operate.disable')
             }}</a-button>
           </div>
         </template>
@@ -63,6 +63,7 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { message, Modal } from 'ant-design-vue';
 import _ from 'lodash';
 import { computed, createVNode, reactive, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { employeeApi } from '/@/api/system/employee-api';
 import { PAGE_SIZE } from '/@/constants/common-const';
 import { SmartLoading } from '/@/components/framework/smart-loading';
@@ -73,6 +74,9 @@ import { smartSentry } from '/@/lib/smart-sentry';
 import TableOperator from '/@/components/support/table-operator/index.vue';
 import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
 import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
+
+// 获取 i18n 实例
+const { t } = useI18n();
 // ----------------------- 以下是字段定义 emits props ---------------------
 
 const props = defineProps({
@@ -114,6 +118,38 @@ const columns = ref([
     width: 140,
   },
 ]);
+
+// 在组件挂载后更新列标题为翻译后的文本
+onMounted(() => {
+  columns.value = [
+    {
+      title: t('employee.list.column.username'),
+      dataIndex: 'LoginName',
+      width: 100,
+    },
+    {
+      title: t('employee.list.column.status'),
+      dataIndex: 'IsDeleted',
+      width: 60,
+    },
+    {
+      title: t('employee.list.column.role'),
+      dataIndex: 'RoleNames',
+      width: 100,
+    },
+    {
+      title: t('employee.list.column.remark'),
+      dataIndex: 'Remark',
+      width: 100,
+    },
+    {
+      title: t('employee.list.column.operate'),
+      dataIndex: 'operate',
+      width: 140,
+    },
+  ];
+  queryEmployee();
+});
 const tableData = ref();
 
 let defaultParams = {
@@ -228,16 +264,16 @@ function showDrawer(rowData) {
 function resetPassword(id, name) {
   console.log(id, name);
   Modal.confirm({
-    title: '提醒',
+    title: t('employee.list.modal.title'),
     icon: createVNode(ExclamationCircleOutlined),
-    content: '确定要重置密码吗?',
-    okText: '确定',
+    content: t('employee.list.modal.resetPassword'),
+    okText: t('employee.list.modal.ok'),
     okType: 'danger',
     async onOk() {
       SmartLoading.show();
       try {
         let { res } = await employeeApi.resetPassword(id);
-        message.success('重置成功');
+        message.success(t('employee.list.message.resetSuccess'));
         queryEmployee();
       } catch (error) {
         smartSentry.captureError(error);
@@ -245,7 +281,7 @@ function resetPassword(id, name) {
         SmartLoading.hide();
       }
     },
-    cancelText: '取消',
+    cancelText: t('employee.list.modal.cancel'),
     onCancel() { },
   });
 }
@@ -253,16 +289,16 @@ function resetPassword(id, name) {
 // 禁用 / 启用
 function updateDisabled(id, IsDeleted) {
   Modal.confirm({
-    title: '提醒',
+    title: t('employee.list.modal.title'),
     icon: createVNode(ExclamationCircleOutlined),
-    content: `确定要${IsDeleted ? '启用' : '禁用'}吗?`,
-    okText: '确定',
+    content: IsDeleted ? t('employee.list.modal.enable') : t('employee.list.modal.disable'),
+    okText: t('employee.list.modal.ok'),
     okType: 'danger',
     async onOk() {
       SmartLoading.show();
       try {
         await employeeApi.updateDisabled(`id=${id}&isEnable=${!IsDeleted}`);
-        message.success(`${IsDeleted ? '启用' : '禁用'}成功`);
+        message.success(IsDeleted ? t('employee.list.message.enableSuccess') : t('employee.list.message.disableSuccess'));
         queryEmployee();
       } catch (error) {
         smartSentry.captureError(error);
@@ -270,7 +306,7 @@ function updateDisabled(id, IsDeleted) {
         SmartLoading.hide();
       }
     },
-    cancelText: '取消',
+    cancelText: t('employee.list.modal.cancel'),
     onCancel() { },
   });
 }

@@ -1,17 +1,17 @@
 <template>
-  <a-modal :title="form.roleId ? '编辑角色' : '添加角色'" :width="600" :open="modalVisible" @cancel="onClose" :footer="null">
+  <a-modal :title="form.roleId ? t('role.form.title.edit') : t('role.form.title.add')" :width="600" :open="modalVisible" @cancel="onClose" :footer="null">
     <a-form ref="formRef" :model="form" :rules="rules" :labelCol="{ span: 4 }">
-      <a-form-item label="角色名称" name="Name">
-        <a-input style="width: 100%" placeholder="请输入角色名称" v-model:value="form.Name" />
+      <a-form-item :label="t('role.form.label.name')" name="Name">
+        <a-input style="width: 100%" :placeholder="t('role.form.placeholder.name')" v-model:value="form.Name" />
       </a-form-item>
-      <a-form-item label="角色备注">
-        <a-input style="width: 100%" placeholder="请输入角色备注" v-model:value="form.Description" />
+      <a-form-item :label="t('role.form.label.remark')">
+        <a-input style="width: 100%" :placeholder="t('role.form.placeholder.remark')" v-model:value="form.Description" />
       </a-form-item>
     </a-form>
 
     <div class="footer">
-      <a-button style="margin-right: 8px" @click="onClose">取消</a-button>
-      <a-button type="primary" @click="submitForm">提交</a-button>
+      <a-button style="margin-right: 8px" @click="onClose">{{ t('role.form.button.cancel') }}</a-button>
+      <a-button type="primary" @click="submitForm">{{ t('role.form.button.submit') }}</a-button>
     </div>
   </a-modal>
 </template>
@@ -19,9 +19,13 @@
 <script setup>
   import { message } from 'ant-design-vue';
   import { reactive, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { roleApi } from '/@/api/system/role-api';
   import { smartSentry } from '/@/lib/smart-sentry';
   import { SmartLoading } from '/@/components/framework/smart-loading';
+
+  // 获取 i18n 实例
+  const { t } = useI18n();
   // ----------------------- 以下是字段定义 emits props ---------------------
   let emits = defineEmits(['refresh']);
 
@@ -59,7 +63,7 @@
 
   // 表单规则
   const rules = {
-    Name: [{ required: true, message: '请输入角色名称' }],
+    Name: [{ required: true, message: t('role.form.rules.name.required') }],
   };
 
   // 提交表单
@@ -74,7 +78,7 @@
           } else {
             await roleApi.addRole(form);
           }
-          message.info(`${form.roleId ? '编辑' : '添加'}成功`);
+          message.info(form.roleId ? t('role.form.message.editSuccess') : t('role.form.message.addSuccess'));
           emits('refresh');
           onClose();
         } catch (e) {
@@ -84,7 +88,7 @@
         }
       })
       .catch((error) => {
-        message.error('参数验证错误，请仔细填写表单数据!');
+        message.error(t('role.form.message.validationError'));
       });
   }
 </script>

@@ -1,33 +1,33 @@
 <template>
 
-  <a-drawer :body-style="{ paddingBottom: '80px' }" :maskClosable="true" :title="form.Id ? '编辑' : '添加'" :open="visible"
+  <a-drawer :body-style="{ paddingBottom: '80px' }" :maskClosable="true" :title="form.Id ? t('menu.form.title.edit') : t('menu.form.title.add')" :open="visible"
     :width="600" @close="onClose" destroyOnClose>
     <a-form ref="formRef" :labelCol="{ span: 5 }" :labelWrap="true" :model="form" :rules="rules">
       <!-- <a-form-item :label="form.menuType === MENU_TYPE_ENUM.CATALOG.value ? '上级目录' : '上级菜单'">
         <MenuTreeSelect ref="parentMenuTreeSelect" v-model:value="form.parentId" />
       </a-form-item> -->
       <!--      目录 菜单 start   -->
-      <a-form-item label="菜单名称" name="Name">
-        <a-input v-model:value="form.Name" placeholder="请输入菜单名称" />
+      <a-form-item :label="t('menu.form.label.name')" name="Name">
+        <a-input v-model:value="form.Name" :placeholder="t('menu.form.placeholder.name')" />
       </a-form-item>
-      <a-form-item label="菜单图标" name="Icon">
+      <a-form-item :label="t('menu.form.label.icon')" name="Icon">
         <IconSelect @updateIcon="selectIcon">
           <template #iconSelect>
-            <a-input v-model:value="form.Icon" placeholder="请输入菜单图标" style="width: 200px" />
+            <a-input v-model:value="form.Icon" :placeholder="t('menu.form.placeholder.icon')" style="width: 200px" />
             <component :is="$antIcons[form.Icon]" class="smart-margin-left15" style="font-size: 20px" />
           </template>
         </IconSelect>
       </a-form-item>
 
-      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="组件地址" name="Code">
-        <a-input v-model:value="form.Code" placeholder="请输入组件地址 默认带有开头/@/views" />
+      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" :label="t('menu.form.label.component')" name="Code">
+        <a-input v-model:value="form.Code" :placeholder="t('menu.form.placeholder.component')" />
       </a-form-item>
 
       <!--      目录 菜单 end   -->
-      <a-form-item label="排序" name="OrderSort" help="值越小越靠前">
-        <a-input-number v-model:value="form.OrderSort" :min="0" placeholder="请输入排序" style="width: 100px" />
+      <a-form-item :label="t('menu.form.label.sort')" name="OrderSort" :help="t('menu.form.help.sort')">
+        <a-input-number v-model:value="form.OrderSort" :min="0" :placeholder="t('menu.form.placeholder.sort')" style="width: 100px" />
       </a-form-item>
-      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" label="按钮" name="Btns">
+      <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" :label="t('menu.form.label.btns')" name="Btns">
         <a-checkbox-group v-model:value="form.Btns">
           <a-row>
             <a-col :span="6" v-for="item in BtnsOptions" :key="item.value">
@@ -36,13 +36,13 @@
           </a-row>
         </a-checkbox-group>
       </a-form-item>
-      <a-form-item label="描述" name="Description">
-        <a-textarea :rows="2" v-model:value="form.Description" placeholder="请输入描述" />
+      <a-form-item :label="t('menu.form.label.description')" name="Description">
+        <a-textarea :rows="2" v-model:value="form.Description" :placeholder="t('menu.form.placeholder.description')" />
       </a-form-item>
     </a-form>
     <div class="footer">
-      <a-button style="margin-right: 8px" @click="onClose">取消</a-button>
-      <a-button style="margin-right: 8px" type="primary" @click="onSubmit()">提交 </a-button>
+      <a-button style="margin-right: 8px" @click="onClose">{{ t('menu.form.button.cancel') }}</a-button>
+      <a-button style="margin-right: 8px" type="primary" @click="onSubmit()">{{ t('menu.form.button.submit') }}</a-button>
     </div>
   </a-drawer>
 </template>
@@ -50,12 +50,16 @@
 import { message } from 'ant-design-vue';
 import _ from 'lodash';
 import { nextTick, reactive, ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 // import MenuTreeSelect from './menu-tree-select.vue';
 import { menuApi } from '/@/api/system/menu-api';
 import IconSelect from '/@/components/framework/icon-select/index.vue';
 import { MENU_DEFAULT_PARENT_ID, MENU_PERMS_TYPE_ENUM, MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
 import { smartSentry } from '/@/lib/smart-sentry';
 import { SmartLoading } from '/@/components/framework/smart-loading';
+
+// 获取 i18n 实例
+const { t } = useI18n();
 
 // ----------------------- 以下是字段定义 emits props ------------------------
 // emit
@@ -132,8 +136,8 @@ let form = reactive({ ...formDefault });
 const rules = computed(() => {
   return {
     Name: [
-      { required: true, message: '菜单名称不能为空' },
-      { max: 20, message: '菜单名称不能大于20个字符', trigger: 'blur' },
+      { required: true, message: t('menu.form.rules.name.required') },
+      { max: 20, message: t('menu.form.rules.name.max'), trigger: 'blur' },
     ],
     // Btns: [
     //   { required: form.menuType === MENU_TYPE_ENUM.MENU.value, type: 'array', message: '请选择按钮', trigger: 'change' },
@@ -157,7 +161,7 @@ function validateForm(formRef) {
 const onSubmit = async () => {
   let validateFormRes = await validateForm(formRef.value);
   if (!validateFormRes) {
-    message.error('参数验证错误，请仔细填写表单数据!');
+    message.error(t('menu.form.message.validationError'));
     return;
   }
   SmartLoading.show();
@@ -167,7 +171,7 @@ const onSubmit = async () => {
     if (!params.Pid) {
       params.Pid = 0;
     }
-    if (params.menuType == undefined) {
+    if (params.menuType == undefined || params.menuType == 1) {
       params.Code = '/'
     }
     console.log("params", params)
@@ -176,7 +180,7 @@ const onSubmit = async () => {
     } else {
       await menuApi.addPermission(params);
     }
-    message.success(`${params.Id ? '修改' : '添加'}成功`);
+    message.success(params.Id ? t('menu.form.message.editSuccess') : t('menu.form.message.addSuccess'));
     onClose();
     emit('reloadList');
   } catch (error) {

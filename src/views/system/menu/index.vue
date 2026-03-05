@@ -2,8 +2,8 @@
   <div>
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
-        <a-form-item label="名称" class="smart-query-form-item">
-          <a-input style="width: 300px" v-model:value="queryForm.keyCode" placeholder="菜单名称" />
+        <a-form-item :label="t('menu.query.label.name')" class="smart-query-form-item">
+          <a-input style="width: 300px" v-model:value="queryForm.keyCode" :placeholder="t('menu.query.placeholder.name')" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
@@ -12,14 +12,14 @@
               <template #icon>
                 <SearchOutlined />
               </template>
-              查询
+              {{ t('menu.query.button.search') }}
             </a-button>
 
             <a-button @click="resetQuery">
               <template #icon>
                 <ReloadOutlined />
               </template>
-              重置
+              {{ t('menu.query.button.reset') }}
             </a-button>
           </a-button-group>
         </a-form-item>
@@ -59,15 +59,15 @@
             <div class="smart-table-operate">
               <a-button v-privilege="'system:menu:Add'" v-if="record.menuType == MENU_TYPE_ENUM.CATALOG.value"
                 type="primary" size="small" @click="showAddSub(record)">
-                添加下级
+                {{ t('menu.operate.addSub') }}
               </a-button>
               <a-button v-privilege="'system:menu:Edit'" v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value"
-                type="primary" size="small" @click="showDrawer(record)">编辑</a-button>
+                type="primary" size="small" @click="showDrawer(record)">{{ t('menu.operate.edit') }}</a-button>
               <a-button v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value" danger type="primary" size="small"
-                @click="singleDelete(record)">删除</a-button>
+                @click="singleDelete(record)">{{ t('menu.operate.delete') }}</a-button>
               <a-button v-privilege="'system:menu:Delete'" v-if="record.menuType !== MENU_TYPE_ENUM.POINTS.value"
                 style="font-size: 12px;" size="small" type="primary" @click="updateStatus(record)">{{
-                  record.disabledFlag ? '启用' : '禁用'
+                  record.disabledFlag ? t('menu.operate.enable') : t('menu.operate.disable')
                 }}</a-button>
             </div>
           </template>
@@ -83,9 +83,10 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { message, Modal } from 'ant-design-vue';
 import _ from 'lodash';
 import { computed, createVNode, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import MenuOperateModal from './components/menu-operate-modal.vue';
 import { buildMenuTableTree } from './menu-data-handler';
-import { columns } from './menu-list-table-columns';
+import { useColumns } from './menu-list-table-columns';
 import { menuApi } from '/@/api/system/menu-api';
 import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue';
 import { SmartLoading } from '/@/components/framework/smart-loading';
@@ -94,6 +95,11 @@ import TableOperator from '/@/components/support/table-operator/index.vue';
 import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
 import { MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
 
+// 获取 i18n 实例
+const { t } = useI18n();
+
+// 获取表格列配置
+const columns = useColumns();
 
 // ------------------------ 表格渲染 ------------------------
 const menuTypeColorArray = ['red', 'blue', 'orange', 'green'];
@@ -149,10 +155,10 @@ function batchDelete() {
 function confirmBatchDelete(menuArray) {
   const menuNameArray = menuArray.map((e) => e.menuName);
   Modal.confirm({
-    title: '确定要删除如下菜单吗?',
+    title: t('menu.modal.delete.title'),
     icon: createVNode(ExclamationCircleOutlined),
     content: _.join(menuNameArray, '、'),
-    okText: '删除',
+    okText: t('menu.modal.delete.confirm'),
     okType: 'danger',
     onOk() {
       console.log('OK');
@@ -160,7 +166,7 @@ function confirmBatchDelete(menuArray) {
       requestBatchDelete(menuIdList);
       selectedRows = [];
     },
-    cancelText: '取消',
+    cancelText: t('menu.modal.delete.cancel'),
     onCancel() { },
   });
 
@@ -168,7 +174,7 @@ function confirmBatchDelete(menuArray) {
     SmartLoading.show();
     try {
       await menuApi.batchDeleteMenu(menuIdList);
-      message.success('删除成功!');
+      message.success(t('menu.message.deleteSuccess'));
       query();
     } catch (e) {
       smartSentry.captureError(e);
@@ -179,15 +185,14 @@ function confirmBatchDelete(menuArray) {
 }
 
 function updateStatus(record) {
-  const title = record.disabledFlag ? '启用' : '禁用';
   Modal.confirm({
-    title: `提示`,
+    title: t('menu.modal.status.title'),
     icon: createVNode(ExclamationCircleOutlined),
-    content: `确认${title}？`,
+    content: record.disabledFlag ? t('menu.modal.status.confirm.enable') : t('menu.modal.status.confirm.disable'),
     onOk() {
       requestUpdateStatus(record);
     },
-    cancelText: '取消',
+    cancelText: t('menu.modal.status.cancel'),
     onCancel() { },
   });
 }
@@ -196,7 +201,7 @@ async function requestUpdateStatus(record) {
   SmartLoading.show();
   try {
     await menuApi.editPermissionEnable({ Id: record.menuId, enable: record.disabledFlag });
-    message.success('操作成功!');
+    message.success(t('menu.message.operationSuccess'));
     query();
   } catch (e) {
   } finally {

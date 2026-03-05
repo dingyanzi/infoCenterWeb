@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="tree-header">
-      <p>设置角色对应的功能操作、后台管理权限</p>
-      <a-button v-if="selectRoleId" type="primary" @click="saveChange"> 保存 </a-button>
+      <p>{{ t('role.tree.header') }}</p>
+      <a-button v-if="selectRoleId" type="primary" @click="saveChange">{{ t('role.tree.button.save') }}</a-button>
     </div>
     <!-- 功能权限勾选部分 -->
     <RoleTreeCheckbox :tree="tree" />
@@ -10,6 +10,7 @@
 </template>
 <script setup>
   import { inject, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { message } from 'ant-design-vue';
   import _ from 'lodash';
   import RoleTreeCheckbox from './role-tree-checkbox.vue';
@@ -17,6 +18,9 @@
   import { useRoleStore } from '/@/store/modules/system/role';
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { smartSentry } from '/@/lib/smart-sentry';
+
+  // 获取 i18n 实例
+  const { t } = useI18n();
 
   let roleStore = useRoleStore();
   let tree = ref();
@@ -41,7 +45,7 @@
   async function saveChange() {
     let checkedData = roleStore.checkedData;
     if (_.isEmpty(checkedData)) {
-      message.error('还未选择任何权限');
+      message.error(t('role.tree.message.noPermission'));
       return;
     }
     let params = {
@@ -51,7 +55,7 @@
     SmartLoading.show();
     try {
       await roleMenuApi.updateRoleMenu(params);
-      message.success('保存成功');
+      message.success(t('role.tree.message.saveSuccess'));
     } catch (error) {
     } finally {
       SmartLoading.hide();
