@@ -163,4 +163,12 @@ export default {
   'menu.form.message.validationError': 'Parameter validation error, please fill in the form data carefully!',
   'menu.form.message.editSuccess': 'Update successful',
   'menu.form.message.addSuccess': 'Add successful',
+  'table.operator.fullscreen': 'Full Screen',
+  'table.operator.exitFullscreen': 'Exit Full Screen',
+  'table.operator.refresh': 'Refresh',
+  'table.operator.columns': 'Column Settings',
+  'table.operator.error.browser': 'Current browser does not support partial full screen!',
+  'role.setting.tab.permission': 'Role - Function Permission',
+  'role.setting.tab.dataScope': 'Role - Data Scope',
+  'role.setting.tab.employeeList': 'Role - Employee List',
 };

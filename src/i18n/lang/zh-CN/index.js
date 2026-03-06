@@ -160,4 +160,12 @@ export default {
   'menu.form.message.validationError': '参数验证错误，请仔细填写表单数据!',
   'menu.form.message.editSuccess': '修改成功',
   'menu.form.message.addSuccess': '添加成功',
+  'table.operator.fullscreen': '全屏',
+  'table.operator.exitFullscreen': '取消全屏',
+  'table.operator.refresh': '刷新',
+  'table.operator.columns': '列设置',
+  'table.operator.error.browser': '当前浏览器不支持部分全屏！',
+  'role.setting.tab.permission': '角色-功能权限',
+  'role.setting.tab.dataScope': '角色-数据范围',
+  'role.setting.tab.employeeList': '角色-员工列表',
 };

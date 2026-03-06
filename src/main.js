@@ -95,6 +95,8 @@ async function initVue() {
   //全局
   app.config.globalProperties.$antIcons = antIcons;
   app.config.globalProperties.$lodash = lodash;
+  // 全局翻译函数
+  app.config.globalProperties.$t = i18n.global.t;
   //挂载
   app.mount('#app');
 }

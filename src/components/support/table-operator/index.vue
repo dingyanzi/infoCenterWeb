@@ -11,22 +11,22 @@
 
 <template>
   <span>
-    <a-tooltip title="全屏" v-if="!fullScreenFlag">
+    <a-tooltip :title="t('table.operator.fullscreen')" v-if="!fullScreenFlag">
       <a-button type="text" @click="onFullScreen" size="small">
         <template #icon><fullscreen-outlined /></template>
       </a-button>
     </a-tooltip>
-    <a-tooltip title="取消全屏" v-if="fullScreenFlag">
+    <a-tooltip :title="t('table.operator.exitFullscreen')" v-if="fullScreenFlag">
       <a-button type="text" @click="onFullScreen" size="small">
         <template #icon><fullscreen-exit-outlined /></template>
       </a-button>
     </a-tooltip>
-    <a-tooltip title="刷新">
+    <a-tooltip :title="t('table.operator.refresh')">
       <a-button type="text" @click="props.refresh" size="small">
         <template #icon><redo-outlined /></template>
       </a-button>
     </a-tooltip>
-    <!-- <a-tooltip title="列设置">
+    <!-- <a-tooltip :title="t('table.operator.columns')">
       <a-button type="text" @click="showModal" size="small">
         <template #icon><setting-outlined /></template>
       </a-button>
@@ -38,11 +38,15 @@
 <script setup>
 import _ from 'lodash';
 import { onMounted, ref, watch, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SmartTableColumnModal from './smart-table-column-modal.vue';
 import { message } from 'ant-design-vue';
 import { mergeColumn } from './smart-table-column-merge';
 import { smartSentry } from '/@/lib/smart-sentry';
 import { useAppConfigStore } from '/@/store/modules/system/app-config.js';
+
+// 获取 i18n 实例
+const { t } = useI18n();
 
 const props = defineProps({
   // 表格列数组
@@ -125,7 +129,7 @@ function launchElementFullScreen(element) {
   } else if (element.msRequestFullscreen) {
     element.msRequestFullscreen();
   } else {
-    message.error('当前浏览器不支持部分全屏！');
+    message.error(t('table.operator.error.browser'));
   }
   document.addEventListener('fullscreenchange', handleFullscreenChange);
   document.addEventListener('mozfullscreenchange', handleFullscreenChange); // Firefox
