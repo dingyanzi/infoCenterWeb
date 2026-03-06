@@ -11,6 +11,10 @@ import { postRequest, getRequest } from '/@/lib/axios';
 
 export const dictApi = {
 
+  // ------------- 查询写死的字典 -------------
+  GetEnumTypeList: (param) => {
+    return getRequest('/BasicInfo/GetEnumTypeList',param);
+  },
   // 获取所有字典code @author 1024创新实验室-主任-卓大
   getAllDict: () => {
     return getRequest('/support/dict/getAllDict');
