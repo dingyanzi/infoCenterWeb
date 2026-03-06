@@ -168,4 +168,6 @@ export default {
   'role.setting.tab.permission': '角色-功能权限',
   'role.setting.tab.dataScope': '角色-数据范围',
   'role.setting.tab.employeeList': '角色-员工列表',
+  'pageTag.menu.closeOther': '关闭其他',
+  'pageTag.menu.closeAll': '关闭所有',
 };

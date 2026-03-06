@@ -25,8 +25,8 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item @click="closeByMenu(false)">关闭其他</a-menu-item>
-          <a-menu-item @click="closeByMenu(true)">关闭所有</a-menu-item>
+          <a-menu-item @click="closeByMenu(false)">{{ $t('pageTag.menu.closeOther') }}</a-menu-item>
+          <a-menu-item @click="closeByMenu(true)">{{ $t('pageTag.menu.closeAll') }}</a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>
@@ -40,8 +40,8 @@
       </div>
       <template #overlay>
         <a-menu>
-          <a-menu-item @click="closeByMenu(false)">关闭其他</a-menu-item>
-          <a-menu-item @click="closeByMenu(true)">关闭所有</a-menu-item>
+          <a-menu-item @click="closeByMenu(false)">{{ $t('pageTag.menu.closeOther') }}</a-menu-item>
+          <a-menu-item @click="closeByMenu(true)">{{ $t('pageTag.menu.closeAll') }}</a-menu-item>
         </a-menu>
       </template>
     </a-dropdown>

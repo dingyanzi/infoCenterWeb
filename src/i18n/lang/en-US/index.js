@@ -171,4 +171,6 @@ export default {
   'role.setting.tab.permission': 'Role - Function Permission',
   'role.setting.tab.dataScope': 'Role - Data Scope',
   'role.setting.tab.employeeList': 'Role - Employee List',
+  'pageTag.menu.closeOther': 'Close Other',
+  'pageTag.menu.closeAll': 'Close All',
 };
