@@ -1,25 +1,16 @@
-<!--
-  * 字典表单 弹窗
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2025-03-08 21:50:41
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
-  <a-modal :open="visible" :title="form.dictId ? '编辑字典' : '添加字典'" ok-text="确认" cancel-text="取消" @ok="onSubmit" @cancel="onClose">
+  <a-modal :open="visible" :title="form.DictId ? '编辑字典' : '添加字典'" ok-text="确认" cancel-text="取消" @ok="onSubmit" @cancel="onClose">
     <br />
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" :wrapper-col="{ span: 19 }">
-      <a-form-item label="字典编码" name="dictCode">
-        <a-input v-model:value="form.dictCode" placeholder="请输入编码" />
+      <a-form-item label="字典编码" name="DictCode">
+        <a-input v-model:value="form.DictCode" placeholder="请输入编码" />
       </a-form-item>
-      <a-form-item label="字典名称" name="dictName">
-        <a-input v-model:value="form.dictName" placeholder="请输入名称" />
+      <a-form-item label="字典名称" name="DictName">
+        <a-input v-model:value="form.DictName" placeholder="请输入名称" />
       </a-form-item>
 
-      <a-form-item label="备注" name="remark">
-        <a-textarea v-model:value="form.remark" style="width: 100%; height: 100px; outline: none" />
+      <a-form-item label="备注" name="Remark">
+        <a-textarea v-model:value="form.Remark" style="width: 100%; height: 100px; outline: none" />
       </a-form-item>
     </a-form>
   </a-modal>
@@ -38,15 +29,15 @@
   const formRef = ref();
 
   const formDefault = {
-    dictId: undefined,
-    dictCode: '',
-    dictName: '',
-    remark: '',
+    DictId: undefined,
+    DictCode: '',
+    DictName: '',
+    Remark: '',
   };
   let form = reactive({ ...formDefault });
   const rules = {
-    dictCode: [{ required: true, message: '请输入编码' }],
-    dictName: [{ required: true, message: '请输入名称' }],
+    DictCode: [{ required: true, message: '请输入编码' }],
+    DictName: [{ required: true, message: '请输入名称' }],
   };
   // 是否展示
   const visible = ref(false);
@@ -70,12 +61,12 @@
       .then(async () => {
         SmartLoading.show();
         try {
-          if (form.dictId) {
+          if (form.DictId) {
             await dictApi.updateDict(form);
           } else {
             await dictApi.addDict(form);
           }
-          message.success(`${form.dictName ? '修改' : '添加'}成功`);
+          message.success(`${form.DictName ? '修改' : '添加'}成功`);
           emit('reloadList');
           onClose();
         } catch (error) {

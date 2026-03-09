@@ -1,12 +1,3 @@
-<!--
-  * 字典数据 弹窗
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2025-03-08 21:50:41
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
   <a-drawer :width="1000" :open="visible" :body-style="{ paddingBottom: '80px' }" title="字典值" @close="onClose">
     <a-form class="smart-query-form">
@@ -15,7 +6,7 @@
           <a-input style="width: 300px" v-model:value="keywords" @change="search" placeholder="关键字" />
         </a-form-item>
         <a-form-item label="禁用" class="smart-query-form-item">
-          <BooleanSelect v-model:value="disabledFlag" @change="search" style="width: 150px" />
+          <BooleanSelect v-model:value="Enabled" @change="search" style="width: 150px" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
@@ -60,13 +51,13 @@
       size="small"
       :dataSource="tableData"
       :columns="columns"
-      rowKey="dictDataId"
+      rowKey="DictDataId"
       :pagination="false"
       :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
       bordered
     >
       <template #bodyCell="{ record, column }">
-        <template v-if="column.dataIndex === 'disabledFlag'">
+        <template v-if="column.dataIndex === 'Enabled'">
           <a-switch
             @change="(checked) => handleChangeDisabled(checked, record)"
             v-model:checked="record.enabled"
@@ -94,6 +85,7 @@
   import { smartSentry } from '/@/lib/smart-sentry';
   import BooleanSelect from '/@/components/framework/boolean-select/index.vue';
   import _ from 'lodash';
+  import { DICT_DATA_STYLE_ENUM } from '/@/constants/support/dict-const';
 
   // 是否展示抽屉
   const visible = ref(false);
@@ -116,32 +108,32 @@
   const columns = reactive([
     {
       title: '值',
-      dataIndex: 'dataValue',
+      dataIndex: 'DataValue',
     },
     {
       title: '名称',
-      dataIndex: 'dataLabel',
+      dataIndex: 'DataLabel',
     },
     {
       title: '状态',
       width: 90,
-      dataIndex: 'disabledFlag',
+      dataIndex: 'Enabled',
     },
     {
       title: '排序',
       width: 50,
-      dataIndex: 'sortOrder',
+      dataIndex: 'SortOrder',
     },
     {
       title: '备注',
       width: 200,
       ellipsis: true,
-      dataIndex: 'remark',
+      dataIndex: 'Remark',
     },
     {
       title: '更新时间',
       width: 150,
-      dataIndex: 'updateTime',
+      dataIndex: 'UpdateTime',
     },
     {
       title: '操作',
@@ -152,7 +144,7 @@
 
   // ----------------------- 表格 查询 ------------------------
   const keywords = ref(undefined);
-  const disabledFlag = ref(null);
+  const Enabled = ref(null);
 
   const selectedRowKeyList = ref([]);
   const tableLoading = ref(false);
@@ -168,26 +160,33 @@
       let keywordsFilterFlag = true;
       if (keywords.value) {
         keywordsFilterFlag =
-          (item.dataValue &&_.includes(item.dataValue.toLowerCase(), keywords.value.toLowerCase())) ||
-          (item.dataLabel && _.includes(item.dataLabel.toLowerCase(), keywords.value.toLowerCase())) ||
-          (item.remark && _.includes(item.remark.toLowerCase(), keywords.value.toLowerCase()));
+          (item.DataValue &&_.includes(item.DataValue.toLowerCase(), keywords.value.toLowerCase())) ||
+          (item.DataLabel && _.includes(item.DataLabel.toLowerCase(), keywords.value.toLowerCase())) ||
+          (item.Remark && _.includes(item.Remark.toLowerCase(), keywords.value.toLowerCase()));
       }
-      let disabledFilterFlag = _.isNull(disabledFlag.value) ? true : item.disabledFlag === disabledFlag.value;
+      let disabledFilterFlag = _.isNull(Enabled.value) ? true : item.enabled === Enabled.value;
       return disabledFilterFlag && keywordsFilterFlag;
     });
   }
 
   function resetQuery() {
     keywords.value = null;
-    disabledFlag.value = null;
+    Enabled.value = null;
     queryData();
   }
 
   async function queryData() {
     try {
       tableLoading.value = true;
-      let responseData = await dictApi.queryDictData(dictId.value);
-      responseData.data.map((e) => (e.enabled = !e.disabledFlag));
+      let responseData = await dictApi.queryDictData({
+        dictId: dictId.value,
+      });
+     responseData.data.map((e) => {
+        e.enabled = !e.Enabled;
+        if (e.dataStyle) {
+          e.color = DICT_DATA_STYLE_ENUM[e.dataStyle.toUpperCase()].color;
+        }
+      });
       dictDataList.value = responseData.data;
       search();
     } catch (e) {
@@ -198,11 +197,11 @@
   }
 
   // ----------------------- 启用/禁用 ------------------------
-  async function handleChangeDisabled(disabledFlag, dictData) {
+  async function handleChangeDisabled(Enabled, dictData) {
     SmartLoading.show();
     try {
       await dictApi.updateDictDataDisabled(dictData.dictDataId);
-      dictData.disabledFlag = !disabledFlag;
+      dictData.Enabled = !Enabled;
       message.success('操作成功');
     } catch (e) {
       smartSentry.captureError(e);
@@ -234,7 +233,7 @@
       message.success('删除成功');
       await queryData();
     } catch (e) {
-      smartSentry.captureError(e);
+      // smartSentry.captureError(e);
     } finally {
       SmartLoading.hide();
     }

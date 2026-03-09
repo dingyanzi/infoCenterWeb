@@ -27,53 +27,53 @@ export const dictApi = {
 
   // 分页查询 @author 1024创新实验室-主任-卓大
   queryDict: (param) => {
-    return postRequest('/support/dict/queryPage', param);
+    return postRequest('/Dictionary/GetDictTypeForPaged', param);
   },
 
   // 添加 @author 1024创新实验室-主任-卓大
   addDict: (param) => {
-    return postRequest('/support/dict/add', param);
+    return postRequest('/Dictionary/AddDictType', param);
   },
 
   // 更新 @author 1024创新实验室-主任-卓大
   updateDict: (param) => {
-    return postRequest('/support/dict/update', param);
+    return postRequest('/Dictionary/UpdateDictType', param);
   },
 
   // 字典-删除- @author 卓大
   batchDeleteDict: (dictIdList) => {
-    return postRequest('/support/dict/batchDelete', dictIdList);
+    return postRequest('/Dictionary/BatchDeleteDictType', dictIdList);
   },
 
   // 字典 启用 禁用 @author 1024创新实验室-主任-卓大
-  updateDisabled: (dictId) => {
-    return getRequest(`/support/dict/updateDisabled/${dictId}`);
+  updateDisabled: (param) => {
+    return getRequest(`/Dictionary/EditDictTypeEnable`,param);
   },
 
   // ------------- 查询字典数据 -------------
 
   // 字典数据 分页查询 @author 1024创新实验室-主任-卓大
-  queryDictData: (dictId) => {
-    return getRequest(`/support/dict/dictData/queryDictData/${dictId}`);
+  queryDictData: (param) => {
+    return getRequest(`/Dictionary/GetDictDataListByTypeId`,param);
   },
 
   // 字典数据 添加 - @author 卓大
   addDictData: (param) => {
-    return postRequest('/support/dict/dictData/add', param);
+    return postRequest('/Dictionary/AddDictData', param);
   },
 
   // 字典数据 更新- @author 卓大
   updateDictData: (param) => {
-    return postRequest('/support/dict/dictData/update', param);
+    return postRequest('/Dictionary/UpdateDictData', param);
   },
 
   // 字典数据-删除- @author 卓大
   batchDeleteDictData: (dictDataIdList) => {
-    return postRequest('/support/dict/dictData/batchDelete', dictDataIdList);
+    return postRequest('/Dictionary/BatchDeleteDictData', dictDataIdList);
   },
 
   // 字典数据 启用 禁用 @author 1024创新实验室-主任-卓大
   updateDictDataDisabled: (dictDataId) => {
-    return getRequest(`/support/dict/dictData/updateDisabled/${dictDataId}`);
+    return getRequest(`/Dictionary/EditDictDataEnable/${dictDataId}`);
   },
 };
