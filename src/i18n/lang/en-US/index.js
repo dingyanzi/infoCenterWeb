@@ -149,7 +149,6 @@ export default {
   'menu.form.label.icon': 'Menu Icon',
   'menu.form.placeholder.icon': 'Please enter menu icon',
   'menu.form.label.component': 'Component Path',
-  'menu.form.placeholder.component': 'Please enter component path, default starts with /@/views',
   'menu.form.label.sort': 'Sort',
   'menu.form.placeholder.sort': 'Please enter sort value',
   'menu.form.help.sort': 'Smaller value appears first',

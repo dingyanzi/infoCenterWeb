@@ -146,7 +146,6 @@ export default {
   'menu.form.label.icon': '菜单图标',
   'menu.form.placeholder.icon': '请输入菜单图标',
   'menu.form.label.component': '组件地址',
-  'menu.form.placeholder.component': '请输入组件地址 默认带有开头/@/views',
   'menu.form.label.sort': '排序',
   'menu.form.placeholder.sort': '请输入排序',
   'menu.form.help.sort': '值越小越靠前',

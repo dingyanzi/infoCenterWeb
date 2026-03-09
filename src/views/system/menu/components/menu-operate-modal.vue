@@ -20,9 +20,8 @@
       </a-form-item>
 
       <a-form-item v-if="form.menuType === MENU_TYPE_ENUM.MENU.value" :label="t('menu.form.label.component')" name="Code">
-        <a-input v-model:value="form.Code" :placeholder="t('menu.form.placeholder.component')" />
+        <a-input v-model:value="form.Code" />
       </a-form-item>
-
       <!--      目录 菜单 end   -->
       <a-form-item :label="t('menu.form.label.sort')" name="OrderSort" :help="t('menu.form.help.sort')">
         <a-input-number v-model:value="form.OrderSort" :min="0" :placeholder="t('menu.form.placeholder.sort')" style="width: 100px" />
