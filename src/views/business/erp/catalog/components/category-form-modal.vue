@@ -8,10 +8,19 @@
   * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012 
 -->
 <template>
-  <a-modal :open="visible" :title="form.categoryId ? '编辑' : '添加'" ok-text="确认" cancel-text="取消" @ok="onSubmit" @cancel="onClose">
+  <a-modal :open="visible" :title="form.CategoryCode ? '编辑' : '添加'" ok-text="确认" cancel-text="取消" @ok="onSubmit" @cancel="onClose">
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }">
-      <a-form-item label="分类名称" name="categoryName">
-        <a-input v-model:value="form.categoryName" placeholder="请输入分类名称" />
+      <a-form-item label="分类名称" name="CategoryName">
+        <a-input v-model:value="form.CategoryName" placeholder="请输入分类名称" />
+      </a-form-item>
+      <a-form-item label="分类编码" name="CategoryCode">
+        <a-input v-model:value="form.CategoryCode" placeholder="请输入分类编码" />
+      </a-form-item>
+       <a-form-item label="排序" name="OrderSort">
+        <a-input v-model:value="form.OrderSort" placeholder="请输入排序" />
+      </a-form-item>
+       <a-form-item label="描述" name="Remark">
+        <a-textarea :rows="2" v-model:value="form.Remark" />
       </a-form-item>
     </a-form>
   </a-modal>
@@ -35,10 +44,9 @@
   // 是否展示抽屉
   const visible = ref(false);
 
-  function showModal(categoryType, parentId, rowData) {
+  function showModal(parentId, rowData) {
     Object.assign(form, formDefault);
-    form.categoryType = categoryType;
-    form.parentId = parentId;
+    form.Pid = parentId == 1 ? 0 : parentId;
     if (rowData && !_.isEmpty(rowData)) {
       Object.assign(form, rowData);
     }
@@ -68,15 +76,15 @@
   // ------------------------------ 表单 ------------------------------
 
   const formDefault = {
-    categoryId: undefined,
-    categoryName: '',
-    categoryType: 1,
+    CategoryCode: undefined,
+    CategoryName: '',
+    OrderSort: 0,
     parentId: undefined,
-    disabledFlag: false,
   };
   let form = reactive({ ...formDefault });
   const rules = {
-    categoryName: [{ required: true, message: '请输入分类名称' }],
+    CategoryName: [{ required: true, message: '请输入分类名称' }],
+    CategoryCode: [{ required: true, message: '请输入分类编码' }],
   };
 
   function onSubmit() {
@@ -85,12 +93,12 @@
       .then(async () => {
         SmartLoading.show();
         try {
-          if (form.categoryId) {
+          if (form.CategoryId) {
             await categoryApi.updateCategory(form);
           } else {
             await categoryApi.addCategory(form);
           }
-          message.success(`${form.categoryId ? '修改' : '添加'}成功`);
+          message.success(`${form.CategoryCode ? '修改' : '添加'}成功`);
           emit('reloadList', form.parentId);
           onClose();
         } catch (error) {
