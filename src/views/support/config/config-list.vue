@@ -12,7 +12,7 @@
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
         <a-form-item label="参数Key" class="smart-query-form-item">
-          <a-input style="width: 300px" v-model:value="queryForm.ConfigKey" placeholder="请输入key" />
+          <a-input @keyup.enter="onSearch" style="width: 300px" v-model:value="queryForm.ConfigKey" placeholder="请输入key" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">

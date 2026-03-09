@@ -65,6 +65,7 @@
   function onClose() {
     Object.assign(form, formDefault);
     visible.value = false;
+    formRef.value.resetFields();
   }
 
   function onSubmit() {
