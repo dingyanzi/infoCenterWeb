@@ -36,7 +36,7 @@ export default {
   'system.addMenu': 'Add Menu',
 
   'login.systemTitle': 'FDS Personnel Scheduling System',
-  'login.subWelcome': 'Intelligent Scheduling, Intelligent Decision, Collaborative Efficiency Development Platform',
+  'login.subWelcome': 'Intelligent Scheduling, Intelligent Decision-Making, Collaboration & Efficiency',
   'login.title': 'Account Login',
   'login.userName': 'Please enter username',
   'login.password': 'Please enter password: at least 3 types of characters, minimum 8 digits',

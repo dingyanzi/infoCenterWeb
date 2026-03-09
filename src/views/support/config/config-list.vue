@@ -1,14 +1,23 @@
+<!--
+  * 系统设置 列表
+  *
+  * @Author:    1024创新实验室-主任：卓大
+  * @Date:      2022-06-08 21:50:41
+  * @Wechat:    zhuda1024
+  * @Email:     lab1024@163.com
+  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
+-->
 <template>
   <div>
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
-        <a-form-item label="参数类型" class="smart-query-form-item">
-          <a-input style="width: 300px" v-model:value="queryForm.ParamType" placeholder="请输入参数类型" />
+        <a-form-item label="参数Key" class="smart-query-form-item">
+          <a-input style="width: 300px" v-model:value="queryForm.ConfigKey" placeholder="请输入key" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
           <a-button-group>
-            <a-button type="primary" @click="onSearch">
+            <a-button type="primary" @click="onSearch" v-privilege="'support:config:query'">
               <template #icon>
                 <SearchOutlined />
               </template>
@@ -36,7 +45,7 @@
         <TableOperator class="smart-margin-bottom5" v-model="columns" :tableId="TABLE_ID_CONST.SUPPORT.CONFIG" :refresh="ajaxQuery" />
       </a-row>
 
-      <a-table size="small" :loading="tableLoading" bordered :dataSource="tableData" :columns="columns" rowKey="ID" :pagination="false">
+      <a-table size="small" :loading="tableLoading" bordered :dataSource="tableData" :columns="columns" rowKey="ConfigId" :pagination="false">
         <template #bodyCell="{ record, column }">
           <template v-if="column.dataIndex === 'action'">
             <div class="smart-table-operate">
@@ -53,7 +62,7 @@
           show-less-items
           :pageSizeOptions="PAGE_SIZE_OPTIONS"
           :defaultPageSize="queryForm.pageSize"
-          v-model:current="queryForm.currentPage"
+          v-model:current="queryForm.CurrentPage"
           v-model:pageSize="queryForm.pageSize"
           :total="total"
           @change="ajaxQuery"
@@ -76,23 +85,28 @@
 
   const columns = ref([
     {
-      title: '序号',
+      title: 'id',
       width: 50,
-      dataIndex: 'ParamIndex',
+      dataIndex: 'ConfigId',
     },
     {
-      title: '参数类型',
-      dataIndex: 'ParamType',
+      title: '参数key',
+      dataIndex: 'ConfigKey',
+      ellipsis: true,
+    },
+    {
+      title: '参数名称',
+      dataIndex: 'ConfigName',
       ellipsis: true,
     },
     {
       title: '参数值',
-      dataIndex: 'ParamValue',
+      dataIndex: 'ConfigValue',
       ellipsis: true,
     },
     {
       title: '备注',
-      dataIndex: 'Note',
+      dataIndex: 'Remark',
       ellipsis: true,
       width: 150,
     },
@@ -118,11 +132,11 @@
   // ---------------- 查询数据 -----------------------
 
   const queryFormState = {
-    currentPage: 1,
+    ConfigKey: '',
+    CurrentPage: 1,
     pageSize: 10,
-    OrderByType: 1,
-    OrderByFileds: "CreateTime",
-    filters: []
+    OrderByType:'Asc',
+    OrderByFileds:'ConfigKey'
   };
   const queryForm = reactive({ ...queryFormState });
 
@@ -136,21 +150,22 @@
   }
 
   function onSearch() {
-    queryForm.currentPage = 1;
+    queryForm.CurrentPage = 1;
     ajaxQuery();
   }
 
   async function ajaxQuery() {
     const filterConfig = {
-      ParamType: FILTER_TYPE.CONTAINS,
+      ConfigKey: FILTER_TYPE.EQUAL,
     };
     const { filters, cleanQueryForm } = buildFilterParams(queryForm, filterConfig);
     cleanQueryForm.filters = filters;
     try {
       tableLoading.value = true;
       let responseModel = await configApi.queryList(cleanQueryForm);
-      const list = responseModel.data.list;
-      total.value = responseModel.data.total;
+      console.log(responseModel);
+      const list = responseModel.data.Data;
+      total.value = responseModel.data.DataCount;
       tableData.value = list;
     } catch (e) {
       smartSentry.captureError(e);

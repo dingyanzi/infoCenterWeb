@@ -34,7 +34,7 @@ export default {
   'setting.watermark': '水印',
   'system.addMenu': '添加菜单',
   'login.systemTitle': 'FDS 人员调度系统',
-  'login.subWelcome': '「智能调度、智能决策、协同高效」的开发平台',
+  'login.subWelcome': '「智能调度、智能决策、协同高效」',
   'login.title': '账号登录',
   'login.userName': '请输入用户名',
   'login.password': '请输入密码：至少三种字符，最小 8 位',
