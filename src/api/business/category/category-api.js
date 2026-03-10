@@ -16,12 +16,12 @@ export const categoryApi = {
   },
   // GET
   // 删除类目 @author 卓大
-  deleteCategoryById: (categoryId) => {
-    return getRequest(`/MaterialCategory/Delete/${categoryId}`);
+  deleteCategoryById: (param) => {
+    return getRequest(`/MaterialCategory/Delete`, param);
   },
   // 查询类目层级树 @author 卓大
   queryCategoryTree: (param) => {
-    return postRequest('/MaterialCategory/GetAllCategoryTree', param);
+    return getRequest('/MaterialCategory/GetCategoryTreeByName', param);
   },
   // 更新类目 @author 卓大
   updateCategory: (param) => {

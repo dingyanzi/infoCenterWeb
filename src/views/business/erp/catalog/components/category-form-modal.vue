@@ -16,8 +16,12 @@
       <a-form-item label="分类编码" name="CategoryCode">
         <a-input v-model:value="form.CategoryCode" placeholder="请输入分类编码" />
       </a-form-item>
+       <a-form-item label="当前流水号" name="SerialNumber">
+        <a-input-number v-model:value="form.SerialNumber" placeholder="请输入当前流水号" :min="0" style="width: 100%" />
+        <div class="tip" style="margin-top: 4px; color: #409eff; font-size: 12px;">*当前流水号请去ERP系统中查看最新流水号</div>
+      </a-form-item>
        <a-form-item label="排序" name="OrderSort">
-        <a-input v-model:value="form.OrderSort" placeholder="请输入排序" />
+        <a-input-number v-model:value="form.OrderSort" placeholder="请输入排序" :min="0" style="width: 100%" />
       </a-form-item>
        <a-form-item label="描述" name="Remark">
         <a-textarea :rows="2" v-model:value="form.Remark" />
@@ -46,10 +50,16 @@
 
   function showModal(parentId, rowData) {
     Object.assign(form, formDefault);
-    form.Pid = parentId == 1 ? 0 : parentId;
+    form.Pid = parentId == undefined ? 0 : parentId;
     if (rowData && !_.isEmpty(rowData)) {
-      Object.assign(form, rowData);
+      form.CategoryId = rowData.value;
+      form.CategoryCode = rowData.code;
+      form.CategoryName = rowData.label;
+      form.OrderSort = rowData.order;
+      form.Remark = rowData.Remark;
+      form.Pid = rowData.Pid;
     }
+    console.log('form=', rowData);
     visible.value = true;
     nextTick(() => {
       // 解决弹窗错误信息显示,没有可忽略
@@ -71,20 +81,23 @@
   function onClose() {
     Object.assign(form, formDefault);
     visible.value = false;
+    formRef.value.resetFields();
   }
 
   // ------------------------------ 表单 ------------------------------
 
   const formDefault = {
+    CategoryId: undefined,
     CategoryCode: undefined,
     CategoryName: '',
     OrderSort: 0,
-    parentId: undefined,
+    Pid: undefined,
   };
   let form = reactive({ ...formDefault });
   const rules = {
     CategoryName: [{ required: true, message: '请输入分类名称' }],
     CategoryCode: [{ required: true, message: '请输入分类编码' }],
+    SerialNumber: [{ required: true, message: '请输入当前流水号' }],
   };
 
   function onSubmit() {
