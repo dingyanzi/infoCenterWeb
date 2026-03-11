@@ -1,30 +1,33 @@
 /*
  * 类目api
- *
- * @Author:    卓大
- * @Date:      2022-09-03 21:35:00
- * @Wechat:    zhuda1024
- * @Email:     lab1024@163.com
- * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
  */
 import { getRequest, postRequest } from '/@/lib/axios';
 
 export const categoryApi = {
-  // 添加类目 @author 卓大
+  // 添加类目 
   addCategory: (param) => {
     return postRequest('/MaterialCategory/Add', param);
   },
   // GET
-  // 删除类目 @author 卓大
+  // 删除类目
   deleteCategoryById: (param) => {
     return getRequest(`/MaterialCategory/Delete`, param);
   },
-  // 查询类目层级树 @author 卓大
+  // 查询类目层级树 
   queryCategoryTree: (param) => {
     return getRequest('/MaterialCategory/GetCategoryTreeByName', param);
   },
-  // 更新类目 @author 卓大
+  // 更新类目
   updateCategory: (param) => {
     return postRequest('/MaterialCategory/Edit', param);
+  },
+
+  // 获取物料记录分页列表 
+  GetMaterialRecordForPaged: (param) => {
+    return postRequest('/MaterialRecord/GetMaterialRecordForPaged', param);
+  },
+  // 生成物料编码 
+  GenerateMaterialCode: (param) => {
+    return getRequest('/MaterialRecord/GenerateMaterialCode', param);
   },
 };

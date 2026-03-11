@@ -1,12 +1,5 @@
 <!--
   *  目录 树形选择组件
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-08-12 21:01:52
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
-  *
 -->
 <template>
   <a-tree-select
@@ -17,6 +10,8 @@
     :placeholder="placeholder"
     :allowClear="true"
     tree-default-expand-all
+    show-search
+    :filterTreeNode="filterTreeNode"
     @change="onChange"
   />
 </template>
@@ -32,7 +27,6 @@
       type: String,
       default: '请选择',
     },
-    categoryType: Number,
     width: {
       type: String,
       default: '100%',
@@ -44,16 +38,13 @@
   // -----------------  查询 目录 数据 -----------------
   const categoryTreeData = ref([]);
   async function queryCategoryTree() {
-    if (!props.categoryType) {
-      categoryTreeData.value = [];
-      return;
-    }
     try {
       let param = {
-        categoryType: props.categoryType,
+        categoryName:'',
       };
       let resp = await categoryApi.queryCategoryTree(param);
       categoryTreeData.value = resp.data;
+      console.log('categoryTreeData:', categoryTreeData.value);
     } catch (e) {
       smartSentry.captureError(e);
     }
@@ -69,17 +60,18 @@
     }
   );
 
-  // 监听类型变化
-  watch(
-    () => props.categoryType,
-    () => {
-      queryCategoryTree();
-    }
-  );
 
   function onChange(value) {
     emit('update:value', value);
     emit('change', value);
+  }
+
+  // 自定义搜索方法，基于 categoryName 字段
+  function filterTreeNode(value, node) {
+    if (!value) return true;
+    const nodeText = node.label || '';
+    const matchResult = nodeText.includes(value);
+    return matchResult;
   }
 
   onMounted(queryCategoryTree);

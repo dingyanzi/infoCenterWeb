@@ -5,6 +5,7 @@
       color: `${color}`,
     }"
     class="icon"
+    title="复制"
   />
 </template>
 
@@ -33,6 +34,5 @@
 </script>
 <style scoped lang="less">
   .icon {
-    margin: 0 10px;
   }
 </style>
