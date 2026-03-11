@@ -8,18 +8,18 @@
   * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012 
 -->
 <template>
-  <a-modal :open="visible" :title="form.configId ? '编辑' : '添加'" ok-text="确认" cancel-text="取消" @ok="onSubmit" @cancel="onClose">
-    <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }">
-      <a-form-item label="参数Key" name="ConfigKey">
-        <a-input v-model:value="form.ConfigKey" placeholder="请输入参数Key" />
+  <a-modal :open="visible" :title="form.configId ? $t('config.form.title.edit') : $t('config.form.title.add')" :ok-text="$t('config.form.button.ok')" :cancel-text="$t('config.form.button.cancel')" @ok="onSubmit" @cancel="onClose">
+    <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 6 }" label-wrap>
+      <a-form-item :label="$t('config.form.label.key')" name="ConfigKey">
+        <a-input v-model:value="form.ConfigKey" :placeholder="$t('config.form.placeholder.key')" />
       </a-form-item>
-      <a-form-item label="参数名称" name="ConfigName">
-        <a-input v-model:value="form.ConfigName" placeholder="请输入参数名称" />
+      <a-form-item :label="$t('config.form.label.name')" name="ConfigName">
+        <a-input v-model:value="form.ConfigName" :placeholder="$t('config.form.placeholder.name')" />
       </a-form-item>
-      <a-form-item label="参数值" name="ConfigValue">
-        <a-input v-model:value="form.ConfigValue" placeholder="请输入参数值" />
+      <a-form-item :label="$t('config.form.label.value')" name="ConfigValue">
+        <a-input v-model:value="form.ConfigValue" :placeholder="$t('config.form.placeholder.value')" />
       </a-form-item>
-      <a-form-item label="备注" name="Remark">
+      <a-form-item :label="$t('config.form.label.remark')" name="Remark">
         <textarea v-model="form.Remark" style="width: 100%; height: 100px; outline: none"></textarea>
       </a-form-item>
     </a-form>
@@ -28,6 +28,9 @@
 <script setup>
   import { message } from 'ant-design-vue';
   import { reactive, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  
+  const { t } = useI18n();
   import { configApi } from '/@/api/support/config-api';
   import { smartSentry } from '/@/lib/smart-sentry';
   import { SmartLoading } from '/@/components/framework/smart-loading';
@@ -47,9 +50,9 @@
   };
   let form = reactive({ ...formDefault });
   const rules = {
-    ConfigKey: [{ required: true, message: '请输入参数key' }],
-    ConfigName: [{ required: true, message: '请输入参数名称' }],
-    ConfigValue: [{ required: true, message: '请输入参数值' }],
+    ConfigKey: [{ required: true, message: () => t('config.form.rules.key.required') }],
+    ConfigName: [{ required: true, message: () => t('config.form.rules.name.required') }],
+    ConfigValue: [{ required: true, message: () => t('config.form.rules.value.required') }],
   };
   // 是否展示
   const visible = ref(false);
@@ -79,7 +82,7 @@
           } else {
             await configApi.addConfig(form);
           }
-          message.success(`${form.configId ? '修改' : '添加'}成功`);
+          message.success(form.configId ? t('config.form.message.updateSuccess') : t('config.form.message.addSuccess'));
           emit('reloadList');
           onClose();
         } catch (error) {
@@ -90,7 +93,7 @@
       })
       .catch((error) => {
         console.log('error', error);
-        message.error('参数验证错误，请仔细填写表单数据!');
+        message.error(t('config.form.message.validationError'));
       });
   }
 

@@ -1,22 +1,25 @@
 <template>
-  <a-modal :open="visible" :title="form.DictId ? '编辑字典' : '添加字典'" ok-text="确认" cancel-text="取消" @ok="onSubmit" @cancel="onClose">
+  <a-modal :open="visible" :title="form.DictId ? $t('dict.form.title.edit') : $t('dict.form.title.add')" :ok-text="$t('dict.form.button.ok')" :cancel-text="$t('dict.form.button.cancel')" @ok="onSubmit" @cancel="onClose">
     <br />
-    <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" :wrapper-col="{ span: 19 }">
-      <a-form-item label="字典编码" name="DictCode">
-        <a-input v-model:value="form.DictCode" placeholder="请输入编码" />
+    <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }" label-wrap>
+      <a-form-item :label="$t('dict.form.label.code')" name="DictCode">
+        <a-input v-model:value="form.DictCode" :placeholder="$t('dict.form.placeholder.code')" />
       </a-form-item>
-      <a-form-item label="字典名称" name="DictName">
-        <a-input v-model:value="form.DictName" placeholder="请输入名称" />
+      <a-form-item :label="$t('dict.form.label.name')" name="DictName">
+        <a-input v-model:value="form.DictName" :placeholder="$t('dict.form.placeholder.name')" />
       </a-form-item>
 
-      <a-form-item label="备注" name="Remark">
+      <a-form-item :label="$t('dict.form.label.remark')" name="Remark">
         <a-textarea v-model:value="form.Remark" style="width: 100%; height: 100px; outline: none" />
       </a-form-item>
     </a-form>
   </a-modal>
 </template>
 <script setup>
-  import { ref, reactive } from 'vue';
+  import { ref, reactive, getCurrentInstance } from 'vue';
+  
+  const { proxy } = getCurrentInstance();
+  const $t = proxy.$t;
   import { message } from 'ant-design-vue';
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { dictApi } from '/@/api/support/dict-api';
@@ -36,8 +39,8 @@
   };
   let form = reactive({ ...formDefault });
   const rules = {
-    DictCode: [{ required: true, message: '请输入编码' }],
-    DictName: [{ required: true, message: '请输入名称' }],
+    DictCode: [{ required: true, message: () => $t('dict.form.rules.code.required') }],
+    DictName: [{ required: true, message: () => $t('dict.form.rules.name.required') }],
   };
   // 是否展示
   const visible = ref(false);
@@ -67,7 +70,7 @@
           } else {
             await dictApi.addDict(form);
           }
-          message.success(`${form.DictName ? '修改' : '添加'}成功`);
+          message.success(form.DictId ? $t('dict.form.message.updateSuccess') : $t('dict.form.message.addSuccess'));
           emit('reloadList');
           onClose();
         } catch (error) {
@@ -77,7 +80,7 @@
         }
       })
       .catch((error) => {
-        message.error('参数验证错误，请仔细填写表单数据!');
+        message.error($t('dict.form.message.validationError'));
       });
   }
 

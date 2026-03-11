@@ -1,22 +1,22 @@
 <template>
-  <a-drawer :width="1000" :open="visible" :body-style="{ paddingBottom: '80px' }" title="字典值" @close="onClose">
+  <a-drawer :width="1000" :open="visible" :body-style="{ paddingBottom: '80px' }" :title="$t('dict.data.title')" @close="onClose">
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
-        <a-form-item label="关键字" class="smart-query-form-item">
-          <a-input style="width: 300px" v-model:value="keywords" @change="search" placeholder="关键字" />
+        <a-form-item :label="$t('dict.data.query.label.keyword')" class="smart-query-form-item">
+          <a-input style="width: 300px" v-model:value="keywords" @change="search" :placeholder="$t('dict.data.query.placeholder.keyword')" />
         </a-form-item>
-        <a-form-item label="禁用" class="smart-query-form-item">
+        <a-form-item :label="$t('dict.data.query.label.enabled')" class="smart-query-form-item">
           <BooleanSelect v-model:value="Enabled" @change="search" style="width: 150px" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
           <a-button type="primary" @click="queryData">
             <template #icon> <SearchOutlined /> </template>
-            查询
+            {{ $t('dict.data.button.search') }}
           </a-button>
           <a-button @click="resetQuery" class="smart-margin-left10">
             <template #icon> <ReloadOutlined /> </template>
-            重置
+            {{ $t('dict.data.button.reset') }}
           </a-button>
         </a-form-item>
       </a-row>
@@ -28,7 +28,7 @@
           <template #icon>
             <PlusOutlined />
           </template>
-          新建
+          {{ $t('dict.data.button.add') }}
         </a-button>
 
         <a-button
@@ -41,7 +41,7 @@
           <template #icon>
             <DeleteOutlined />
           </template>
-          批量删除
+          {{ $t('dict.data.button.batchDelete') }}
         </a-button>
       </div>
       <div class="smart-table-setting-block"></div>
@@ -61,22 +61,25 @@
           <a-switch
             @change="(checked) => handleChangeDisabled(checked, record)"
             v-model:checked="record.enabled"
-            checked-children="启用中"
-            un-checked-children="已禁用"
+            :checked-children="$t('dict.data.status.enabled')"
+            :un-checked-children="$t('dict.data.status.disabled')"
           />
         </template>
         <template v-if="column.dataIndex === 'action'">
-          <a-button @click="addOrUpdateData(record)" type="link" v-privilege="'support:dictData:update'">编辑</a-button>
+          <a-button @click="addOrUpdateData(record)" type="link" v-privilege="'support:dictData:update'">{{ $t('dict.data.operate.edit') }}</a-button>
         </template>
       </template>
     </a-table>
 
-    <div class="smart-query-table-page">共计 {{ tableData.length }} 条</div>
+    <div class="smart-query-table-page">{{ $t('dict.data.pagination.total', { total: tableData.length }) }}</div>
     <DictDataFormModal ref="dictDataFormModalRef" @reloadList="queryData" />
   </a-drawer>
 </template>
 <script setup>
-  import { reactive, ref } from 'vue';
+  import { reactive, ref, getCurrentInstance } from 'vue';
+  
+  const { proxy } = getCurrentInstance();
+  const $t = proxy.$t;
   import DictDataFormModal from './dict-data-form-modal.vue';
   import { dictApi } from '/@/api/support/dict-api';
   import { SmartLoading } from '/@/components/framework/smart-loading';
@@ -107,36 +110,36 @@
 
   const columns = reactive([
     {
-      title: '值',
+      title: () => $t('dict.data.column.value'),
       dataIndex: 'DataValue',
     },
     {
-      title: '名称',
+      title: () => $t('dict.data.column.label'),
       dataIndex: 'DataLabel',
     },
     {
-      title: '状态',
+      title: () => $t('dict.data.column.status'),
       width: 90,
       dataIndex: 'Enabled',
     },
     {
-      title: '排序',
+      title: () => $t('dict.data.column.sort'),
       width: 50,
       dataIndex: 'SortOrder',
     },
     {
-      title: '备注',
+      title: () => $t('dict.data.column.remark'),
       width: 200,
       ellipsis: true,
       dataIndex: 'Remark',
     },
     {
-      title: '更新时间',
+      title: () => $t('dict.data.column.updateTime'),
       width: 150,
       dataIndex: 'UpdateTime',
     },
     {
-      title: '操作',
+      title: () => $t('dict.data.column.operate'),
       width: 70,
       dataIndex: 'action',
     },
@@ -202,7 +205,7 @@
     try {
       await dictApi.updateDictDataDisabled(dictData.dictDataId);
       dictData.Enabled = !Enabled;
-      message.success('操作成功');
+      message.success($t('dict.data.message.operationSuccess'));
     } catch (e) {
       smartSentry.captureError(e);
     } finally {
@@ -214,14 +217,14 @@
 
   function confirmBatchDelete() {
     Modal.confirm({
-      title: '提示',
-      content: '确定要删除选中值吗?',
-      okText: '删除',
+      title: $t('dict.data.modal.delete.title'),
+      content: $t('dict.data.modal.delete.content'),
+      okText: $t('dict.data.modal.delete.ok'),
       okType: 'danger',
       onOk() {
         batchDelete();
       },
-      cancelText: '取消',
+      cancelText: $t('dict.data.modal.delete.cancel'),
       onCancel() {},
     });
   }
@@ -230,7 +233,7 @@
     try {
       SmartLoading.show();
       await dictApi.batchDeleteDictData(selectedRowKeyList.value);
-      message.success('删除成功');
+      message.success($t('dict.data.message.deleteSuccess'));
       await queryData();
     } catch (e) {
       // smartSentry.captureError(e);

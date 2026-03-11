@@ -11,8 +11,8 @@
   <div>
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
-        <a-form-item label="参数Key" class="smart-query-form-item">
-          <a-input @keyup.enter="onSearch" style="width: 300px" v-model:value="queryForm.ConfigKey" placeholder="请输入key" />
+        <a-form-item :label="$t('config.list.query.label.key')" class="smart-query-form-item">
+          <a-input @keyup.enter="onSearch" style="width: 300px" v-model:value="queryForm.ConfigKey" :placeholder="$t('config.list.query.placeholder.key')" />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
@@ -21,20 +21,20 @@
               <template #icon>
                 <SearchOutlined />
               </template>
-              查询
+              {{ $t('config.list.button.search') }}
             </a-button>
             <a-button @click="resetQuery" v-privilege="'support:config:query'">
               <template #icon>
                 <ReloadOutlined />
               </template>
-              重置
+              {{ $t('config.list.button.reset') }}
             </a-button>
           </a-button-group>
           <a-button @click="toEditOrAdd()" v-privilege="'support:config:add'" type="primary" class="smart-margin-left20">
             <template #icon>
               <PlusOutlined />
             </template>
-            新建
+            {{ $t('config.list.button.add') }}
           </a-button>
         </a-form-item>
       </a-row>
@@ -49,7 +49,7 @@
         <template #bodyCell="{ record, column }">
           <template v-if="column.dataIndex === 'action'">
             <div class="smart-table-operate">
-              <a-button @click="toEditOrAdd(record)" v-privilege="'support:config:update'" type="link">编辑</a-button>
+              <a-button @click="toEditOrAdd(record)" v-privilege="'support:config:update'" type="link">{{ $t('config.list.operate.edit') }}</a-button>
             </div>
           </template>
         </template>
@@ -66,7 +66,7 @@
           v-model:pageSize="queryForm.pageSize"
           :total="total"
           @change="ajaxQuery"
-          :show-total="(total) => `共${total}条`"
+          :show-total="(total) => $t('config.list.pagination.total', { total })"
         />
       </div>
     </a-card>
@@ -75,6 +75,9 @@
 </template>
 <script setup>
   import { onMounted, reactive, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  
+  const { t } = useI18n();
   import { configApi } from '/@/api/support/config-api';
   import ConfigFormModal from './config-form-modal.vue';
   import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
@@ -85,44 +88,44 @@
 
   const columns = ref([
     {
-      title: 'id',
+      title: () => t('config.list.column.id'),
       width: 50,
       dataIndex: 'ConfigId',
     },
     {
-      title: '参数key',
+      title: () => t('config.list.column.key'),
       dataIndex: 'ConfigKey',
       ellipsis: true,
     },
     {
-      title: '参数名称',
+      title: () => t('config.list.column.name'),
       dataIndex: 'ConfigName',
       ellipsis: true,
     },
     {
-      title: '参数值',
+      title: () => t('config.list.column.value'),
       dataIndex: 'ConfigValue',
       ellipsis: true,
     },
     {
-      title: '备注',
+      title: () => t('config.list.column.remark'),
       dataIndex: 'Remark',
       ellipsis: true,
       width: 150,
     },
     {
-      title: '创建时间',
+      title: () => t('config.list.column.createTime'),
       dataIndex: 'CreateTime',
       width: 150,
     },
     {
-      title: '修改时间',
+      title: () => t('config.list.column.updateTime'),
       dataIndex: 'UpdateTime',
       width: 150,
     },
 
     {
-      title: '操作',
+      title: () => t('config.list.column.operate'),
       dataIndex: 'action',
       fixed: 'right',
       width: 60,

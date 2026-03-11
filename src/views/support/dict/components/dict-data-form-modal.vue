@@ -1,14 +1,14 @@
 <template>
-  <a-modal :open="visible" :title="form.DictDataId ? '编辑字典值' : '添加字典值'" ok-text="确认" cancel-text="取消" @ok="onSubmit" @cancel="onClose">
+  <a-modal :open="visible" :title="form.DictDataId ? $t('dict.data.form.title.edit') : $t('dict.data.form.title.add')" :ok-text="$t('dict.data.form.button.ok')" :cancel-text="$t('dict.data.form.button.cancel')" @ok="onSubmit" @cancel="onClose">
     <br />
-    <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 5 }" :wrapper-col="{ span: 16 }">
-      <a-form-item label="字典项名称" name="DataLabel">
-        <a-input v-model:value="form.DataLabel" placeholder="请输入 字典项名称" />
+    <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }" label-wrap>
+      <a-form-item :label="$t('dict.data.form.label.label')" name="DataLabel">
+        <a-input v-model:value="form.DataLabel" :placeholder="$t('dict.data.form.placeholder.label')" />
       </a-form-item>
-      <a-form-item label="字典项值" name="DataValue">
-        <a-input v-model:value="form.DataValue" placeholder="请输入 字典项值" />
+      <a-form-item :label="$t('dict.data.form.label.value')" name="DataValue">
+        <a-input v-model:value="form.DataValue" :placeholder="$t('dict.data.form.placeholder.value')" />
       </a-form-item>
-      <a-form-item label="显示样式">
+      <a-form-item :label="$t('dict.data.form.label.style')">
         <a-select ref="dataStyleSelect" v-model:value="form.DataStyle" :allowClear="true">
           <template v-for="item in DICT_DATA_STYLE_ENUM" :key="item.value">
             <a-select-option :value="item.value">
@@ -17,17 +17,20 @@
           </template>
         </a-select>
       </a-form-item>
-      <a-form-item label="排序" name="sort" help="值越大越靠前">
+      <a-form-item :label="$t('dict.data.form.label.sort')" name="sort" :help="$t('dict.data.form.help.sort')">
         <a-input-number style="width: 100%" v-model:value="form.SortOrder" :min="0" :max="1000" />
       </a-form-item>
-      <a-form-item label="备注" name="Remark">
+      <a-form-item :label="$t('dict.data.form.label.remark')" name="Remark">
         <a-textarea v-model:value="form.Remark" style="width: 100%; height: 100px; outline: none" />
       </a-form-item>
     </a-form>
   </a-modal>
 </template>
 <script setup>
-  import { ref, reactive } from 'vue';
+  import { ref, reactive, getCurrentInstance } from 'vue';
+  
+  const { proxy } = getCurrentInstance();
+  const $t = proxy.$t;
   import { message, theme } from 'ant-design-vue';
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { dictApi } from '/@/api/support/dict-api';
@@ -55,9 +58,9 @@
   };
   let form = reactive({ ...formDefault });
   const rules = {
-    DataValue: [{ required: true, message: '请输入 字典项值' }],
-    DataLabel: [{ required: true, message: '请输入 字典项名称' }],
-    SortOrder: [{ required: true, message: '请输入排序' }],
+    DataValue: [{ required: true, message: () => $t('dict.data.form.rules.value.required') }],
+    DataLabel: [{ required: true, message: () => $t('dict.data.form.rules.label.required') }],
+    SortOrder: [{ required: true, message: () => $t('dict.data.form.rules.sort.required') }],
   };
   // 是否展示
   const visible = ref(false);
@@ -89,7 +92,7 @@
           } else {
             await dictApi.addDictData(form);
           }
-          message.success(`${form.DictDataId ? '修改' : '添加'}成功`);
+          message.success(form.DictDataId ? $t('dict.data.form.message.updateSuccess') : $t('dict.data.form.message.addSuccess'));
           emit('reloadList');
           onClose();
         } catch (error) {
@@ -100,7 +103,7 @@
       })
       .catch((error) => {
         console.log('error', error);
-        message.error('参数验证错误，请仔细填写表单数据!');
+        message.error($t('dict.data.form.message.validationError'));
       });
   }
 
