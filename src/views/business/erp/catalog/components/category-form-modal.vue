@@ -56,8 +56,9 @@
       form.CategoryCode = rowData.code;
       form.CategoryName = rowData.label;
       form.OrderSort = rowData.order;
-      form.Remark = rowData.Remark;
+      form.Remark = rowData.remark;
       form.Pid = rowData.Pid;
+      form.SerialNumber = rowData.serialNumber;
     }
     console.log('form=', rowData);
     visible.value = true;
@@ -111,7 +112,7 @@
           } else {
             await categoryApi.addCategory(form);
           }
-          message.success(`${form.CategoryCode ? '修改' : '添加'}成功`);
+          message.success(`${form.CategoryId ? '修改' : '添加'}成功`);
           emit('reloadList', form.parentId);
           onClose();
         } catch (error) {
