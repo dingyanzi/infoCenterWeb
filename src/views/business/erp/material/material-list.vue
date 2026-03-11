@@ -6,7 +6,7 @@
   <a-form class="smart-query-form">
     <a-row class="smart-query-form-row" v-privilege="'goods:query'">
       <a-form-item label="物料名称" class="smart-query-form-item">
-        <a-input style="width: 200px" v-model:value="queryForm.materialName" placeholder="物料名称" />
+        <a-input @change="onSearch" style="width: 200px" v-model:value="queryForm.CategoryName" placeholder="物料名称" />
       </a-form-item>
 
       <a-form-item class="smart-query-form-item">
@@ -94,6 +94,7 @@
   import TableOperator from '/@/components/support/table-operator/index.vue';
   import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
   import SmartCopyIcon from '/@/components/framework/smart-copy-icon/index.vue';
+  import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
   import _ from 'lodash';
 
   // ---------------------------- 表格列 ----------------------------
@@ -138,7 +139,7 @@
     PageSize: 10,
     OrderByType: 'Asc',
     OrderByFileds:'CreateTime',
-    materialName: undefined,
+    CategoryName: undefined,
   };
   // 查询表单form
   const queryForm = reactive(_.cloneDeep(queryFormState));
@@ -171,11 +172,23 @@
     queryData();
   }
 
+ 
+
   // 查询数据
   async function queryData() {
     tableLoading.value = true;
+    const filterConfig = {
+      CategoryName: FILTER_TYPE.CONTAINS
+    };
     try {
-      let queryResult = await categoryApi.GetMaterialRecordForPaged(queryForm);
+      // 使用 buildFilterParams 构建筛选参数
+      const { filters, cleanQueryForm } = buildFilterParams(queryForm, filterConfig);
+      // 将 filters 添加到查询参数中
+      const requestParams = {
+        ...cleanQueryForm,
+        filters
+      };
+      let queryResult = await categoryApi.GetMaterialRecordForPaged(requestParams);
       tableData.value = queryResult.Data;
       total.value = queryResult.TotalCount;
     } catch (e) {
