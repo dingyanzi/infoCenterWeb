@@ -38,6 +38,13 @@ router.beforeEach(async (to, from, next) => {
     next();
     return;
   }
+  
+  // 访问大屏管理下的页面路由拦截
+  if (to.path === '/system/homeview/index') {
+    window.open('#/homeview', '_blank');
+    next(false);
+    return;
+  }
 
   // 验证登录
   const token = localRead(LocalStorageKeyConst.USER_TOKEN);
