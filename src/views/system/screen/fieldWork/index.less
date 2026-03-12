@@ -13,6 +13,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  overflow-x: hidden;
 
   .header-title {
     position: absolute;
@@ -97,13 +98,25 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 0 20px 0;
+    padding: 0 20px 20px 0;
     box-sizing: border-box;
     z-index: 100;
     pointer-events: none; // 让鼠标可以穿透空白区域点击地图
 
     >div {
       pointer-events: auto; // 子元素恢复交互
+    }
+
+    .count-panels {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .right-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
   }
 
@@ -130,6 +143,72 @@
       color: #fff;
       box-shadow: 0 0 15px rgba(69, 156, 255, 0.6);
       text-shadow: 0 0 5px #fff;
+    }
+  }
+
+  .foreign-btn {
+    position: relative;
+    padding: 8px 15px;
+    background: rgba(4, 62, 130, 0.6);
+    border: 1px solid rgba(69, 156, 255, 0.5);
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 1px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 10px rgba(69, 156, 255, 0.3);
+
+    .btn-text {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 12px;
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: #00eaff;
+        border-radius: 50%;
+        margin-right: 8px;
+        box-shadow: 0 0 5px #00eaff;
+      }
+    }
+
+    .count-wrapper {
+      display: flex;
+      align-items: baseline;
+
+      .number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #00eaff;
+        font-family: 'Arial', sans-serif;
+        text-shadow: 0 0 15px rgba(0, 234, 255, 0.6);
+        margin-right: 6px;
+        letter-spacing: 1px;
+      }
+
+      .unit {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 13px;
+        font-weight: normal;
+        margin-right: 0;
+      }
+    }
+
+    .foreign-data-modal {
+      position: absolute;
+      bottom: 100%;
+      right: 0;
+      z-index: 1000;
+      margin-bottom: 10px;
+      max-width: calc(100vw - 40px);
     }
   }
 
