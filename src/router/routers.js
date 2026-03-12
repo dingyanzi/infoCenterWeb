@@ -1,18 +1,13 @@
 /*
  * 所有路由入口
- *
- * @Author:    1024创新实验室-主任：卓大
- * @Date:      2022-09-06 20:52:26
- * @Wechat:    zhuda1024
- * @Email:     lab1024@163.com
- * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
  */
 import { homeRouters } from './system/home';
 import { loginRouters } from './system/login';
 import { helpDocRouters } from './support/help-doc';
 import NotFound from '/@/views/system/40X/404.vue';
 import NoPrivilege from '/@/views/system/40X/403.vue';
-import HomeView from '/@/views/system/homeview/index.vue';
+//大屏页面
+import ScreenFieldWork from '/@/views/system/screen/fieldWork/index.vue';
 
 export const routerArray = [
     ...loginRouters,
@@ -20,5 +15,5 @@ export const routerArray = [
     ...helpDocRouters,
     { path: '/:pathMatch(.*)*', name: '404', component: NotFound },
     { path: '/403', name: '403', component: NoPrivilege },
-    { path: '/homeview', name: 'homeview', component: HomeView },
+    { path: '/screen/fieldWork', name: 'screenFieldWork', component: ScreenFieldWork },
 ];

@@ -1,11 +1,6 @@
 /*
  * 项目启动入口方法
  *
- * @Author:    1024创新实验室-主任：卓大
- * @Date:      2022-09-06 20:59:23
- * @Wechat:    zhuda1024
- * @Email:     lab1024@163.com
- * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
  */
 
 import { createApp } from 'vue';
@@ -101,9 +96,15 @@ async function initVue() {
   app.mount('#app');
 }
 //不需要获取用户信息、用户菜单、用户菜单动态路由，直接初始化vue即可
-let token = localRead(LocalStorageKeyConst.USER_TOKEN);
-if (!token) {
-  await initVue();
-} else {
-  await getLoginInfo();
+async function initApp() {
+  let token = localRead(LocalStorageKeyConst.USER_TOKEN);
+  if (window.location.hash.includes('/screen')) {
+    await initVue();
+  } else if (!token) {
+    await initVue();
+  } else {
+    await getLoginInfo();
+  }
 }
+
+initApp();

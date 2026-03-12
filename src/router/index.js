@@ -34,14 +34,14 @@ router.beforeEach(async (to, from, next) => {
   nProgress.start();
 
   // 公共页面，任何时候都可以跳转
-  if (to.path === PAGE_PATH_404 || to.path === '/homeview') {
+  if (to.path === PAGE_PATH_404 || to.path === '/screen/fieldWork') {
     next();
     return;
   }
   
   // 访问大屏管理下的页面路由拦截
-  if (to.path === '/system/homeview/index') {
-    window.open('#/homeview', '_blank');
+  if (to.path === '/screen/fieldWork') {
+    window.open('#/screen/fieldWork', '_blank');
     next(false);
     return;
   }
