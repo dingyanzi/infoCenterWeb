@@ -230,6 +230,22 @@ function initProvinceNames(AMap, map, onMarkerClick) {
  * @param {string} containerId 容器ID
  * @param {function} onMarkerClick 点击标记的回调函数，返回Promise
  */
+// 计算地图缩放级别
+function calculateZoom(containerWidth) {
+    // 根据容器宽度计算合适的缩放级别，确保完整显示中国地图
+    if (containerWidth < 600) {
+        return 3.2; // 更小的宽度使用更小的缩放级别
+    } else if (containerWidth < 900) {
+        return 3.5;
+    } else if (containerWidth < 1200) {
+        return 4;
+    } else if (containerWidth < 1500) {
+        return 4.5;
+    } else {
+        return 5; // 更大的宽度使用适中的缩放级别，避免超出显示范围
+    }
+}
+
 export function initMap(containerId, onMarkerClick) {
     return AMapLoader.load({
         key: '291535961b0055175f859cad17407bcb',
@@ -239,9 +255,14 @@ export function initMap(containerId, onMarkerClick) {
         .then((AMap) => {
             AMapObj = AMap;
 
+            // 获取容器宽度
+            const container = document.getElementById(containerId);
+            const containerWidth = container ? container.offsetWidth : window.innerWidth;
+            const initialZoom = calculateZoom(containerWidth);
+
             map = new AMap.Map(containerId, {
                 resizeEnable: true,
-                zoom: 4.5, // 放大地图
+                zoom: initialZoom, // 根据容器宽度计算缩放级别
                 center: [105.122082, 38.0], // 中心点北移以隐藏群岛，保留中国主体
                 viewMode: '3D',
                 showLabel: false, // 不显示底图文字
@@ -250,6 +271,22 @@ export function initMap(containerId, onMarkerClick) {
                 layers: [], // 移除默认底图，只保留GeoJSON覆盖物
                 features: [] // 隐藏所有地图要素（背景、道路、建筑、点）
             });
+
+            // 监听窗口大小变化，调整缩放级别
+            const handleResize = () => {
+                if (map && container) {
+                    const newWidth = container.offsetWidth;
+                    const newZoom = calculateZoom(newWidth);
+                    if (newZoom !== map.getZoom()) {
+                        map.setZoom(newZoom);
+                    }
+                }
+            };
+
+            window.addEventListener('resize', handleResize);
+
+            // 存储 resize 事件处理函数，以便在销毁地图时移除
+            map._resizeHandler = handleResize;
 
             // 加载GeoJSON数据
             fetch('/china.geo.json')
@@ -317,6 +354,10 @@ export function resetMap() {
  */
 export function destroyMap() {
     if (map) {
+        // 移除 resize 事件监听器
+        if (map._resizeHandler) {
+            window.removeEventListener('resize', map._resizeHandler);
+        }
         map.destroy();
         map = null;
     }
