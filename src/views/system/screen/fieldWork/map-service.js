@@ -241,7 +241,7 @@ export function initMap(containerId, onMarkerClick) {
 
             map = new AMap.Map(containerId, {
                 resizeEnable: true,
-                zoom: 4.3, // 放大地图
+                zoom: 4.5, // 放大地图
                 center: [105.122082, 38.0], // 中心点北移以隐藏群岛，保留中国主体
                 viewMode: '3D',
                 showLabel: false, // 不显示底图文字
@@ -306,7 +306,7 @@ export function initMap(containerId, onMarkerClick) {
  */
 export function resetMap() {
     if (map) {
-        map.setZoomAndCenter(4.3, [105.122082, 38.0]);
+        map.setZoomAndCenter(4.5, [105.122082, 38.0]);
         map.setPitch(0);
         window.closeInfoWindow();
     }
