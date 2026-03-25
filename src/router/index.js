@@ -37,6 +37,9 @@ router.beforeEach(async (to, from, next) => {
   if (to.path === PAGE_PATH_404) {
     next();
     return;
+  }else if (to.path === '/screen/fieldWork') {
+    next();
+    return;
   }
   
   // 访问大屏管理下的页面路由拦截
