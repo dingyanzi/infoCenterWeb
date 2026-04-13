@@ -250,6 +250,41 @@ src/components/
 - **路径**: `src/components/system/position-select/index.vue`
 - **功能**: 职位选择组件
 
+
+### 5. 表格组件
+- **路径**: `src/components/smartTable/smart-table.vue`
+- **功能**: 基于 Ant Design Vue 的智能表格组件，提供表格展示、分页、自定义插槽等功能。
+- **属性**:
+  - `dataSource`: Array，表格数据源
+  - `columns`: Array，表格列配置
+  - `rowKey`: String，行键，默认为"id"
+  - `scroll`: Object，滚动配置，默认为{ x: 1000, y: 400 }
+  - `total`: Number，总条数，默认为0
+  - `pageSizeOptions`: Array，分页大小选项，默认为['10', '20', '30', '40', '50']
+  - `queryForm`: Object，查询表单，默认为{ currentPage: 1, pageSize: 10 }
+- **事件**:
+  - `resizeColumn`: 列宽调整时触发
+  - `pageChange`: 分页变化时触发
+- **插槽**:
+  - `action`: 操作列插槽
+  - `bodyCell`: 单元格内容插槽
+  - `headerCell`: 表头单元格插槽
+- **使用示例**:
+  ```vue
+  <smart-table
+    :dataSource="dataSource"
+    :columns="columns"
+    :total="total"
+    :queryForm="queryForm"
+    @pageChange="handlePageChange"
+  >
+    <template #action="{ record }">
+      <a-button type="link" @click="handleEdit(record)">编辑</a-button>
+      <a-button type="link" @click="handleDelete(record)">删除</a-button>
+    </template>
+  </smart-table>
+  ```
+
 ## 总结
 
 以上是项目中所有公共组件的详细文档，包括组件的功能、属性、事件和使用示例。开发人员可以根据需要选择合适的组件来使用，提高开发效率和代码质量。
