@@ -11,7 +11,7 @@ export const configApi = {
   },
   // 修改配置参数 @author 卓大
   updateConfig: (param) => {
-    return postRequest('/SystemparamConfigs/UpdateSystemparamConfigs', param);
+    return postRequest('/ParamConfig/UpdateParamConfig', param);
   },
   // 查询配置详情 @author 卓大
   // queryByKey: (param) => {
