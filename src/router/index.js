@@ -1,12 +1,3 @@
-/*
- * 路由
- *
- * @Author:    1024创新实验室-主任：卓大
- * @Date:      2022-09-06 20:52:04
- * @Wechat:    zhuda1024
- * @Email:     lab1024@163.com
- * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
- */
 import nProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import { nextTick } from 'vue';
@@ -37,12 +28,9 @@ router.beforeEach(async (to, from, next) => {
   if (to.path === PAGE_PATH_404) {
     next();
     return;
-  }else if (to.path === '/screen/fieldWork') {
-    next();
-    return;
   }
-  
-  // 访问大屏管理下的页面路由拦截
+
+  // 访问大屏管理下的页面，在新窗口打开大屏页面
   if (to.path.includes('/system/screen')) {
     window.open('#/screen/fieldWork', '_blank');
     next(false);
