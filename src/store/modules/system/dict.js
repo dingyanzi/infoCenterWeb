@@ -85,7 +85,6 @@ export const useDictStore = defineStore({
     async refreshData(){
       try{
         const dictRes = await dictApi.getAllDictData();
-        console.log('@@',dictRes.data)
         this.initData(dictRes.data);
       }catch (e){
         smartSentry.captureError(e);
