@@ -10,12 +10,15 @@
 import { HOME_PAGE_NAME } from '/@/constants/system/home-const';
 import { MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
 import SmartLayout from '/@/layout/index.vue';
+import { isMobileDevice } from '/@/utils/device.js';
 
 export const homeRouters = [
   {
     path: '/',
     name: '_home',
-    redirect: { name: HOME_PAGE_NAME },
+    redirect: (to) => {
+      return isMobileDevice() ? { path: '/Android/login' } : { name: HOME_PAGE_NAME };
+    },
     component: SmartLayout,
     meta: {
       title: '首页',
