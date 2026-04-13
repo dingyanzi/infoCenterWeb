@@ -1,12 +1,12 @@
 <!--
-  * 商品列表
+  * 物料码管理
 -->
 <template>
   <!---------- 查询表单form begin ----------->
   <a-form class="smart-query-form">
     <a-row class="smart-query-form-row" v-privilege="'goods:query'">
       <a-form-item label="物料名称" class="smart-query-form-item">
-        <a-input @change="onSearch" style="width: 200px" v-model:value="queryForm.CategoryName" placeholder="物料名称" />
+        <a-input @change="onSearch" style="width: 200px" v-model:value="queryForm.CategoryName" />
       </a-form-item>
 
       <a-form-item class="smart-query-form-item">
@@ -40,61 +40,41 @@
           生成编码
         </a-button>
       </div>
+      <!-- 表格操作 -->
       <div class="smart-table-setting-block">
-        <TableOperator v-model="columns" :tableId="TABLE_ID_CONST.BUSINESS.ERP.GOODS" :refresh="queryData" />
+        <TableOperator v-model="columns" :tableId="TABLE_ID_CONST.BUSINESS.ERP.MATERIAL" :refresh="queryData" />
       </div>
     </a-row>
     <!---------- 表格操作行 end ----------->
-    <a-table
-      size="small"
+
+    <!-- 物料码列表 -->
+    <SmartTable
       :dataSource="tableData"
       :columns="columns"
-      rowKey="goodsId"
-      :scroll="{ x: 1000, y: yHeight }"
-      bordered
-      :pagination="false"
-      :showSorterTooltip="false"
+      rowKey="MaterialCode"
+      :total="total"
+      :pageSizeOptions="PAGE_SIZE_OPTIONS"
+      :queryForm="{
+        currentPage: queryForm.CurrentPage,
+        pageSize: queryForm.PageSize,
+      }"
       @resizeColumn="handleResizeColumn"
-    >
-    <template #bodyCell="{ text, record, column }">
-      <template v-if="column.dataIndex === 'MaterialCode'">
-        {{ text ? text : '' }}
-        <SmartCopyIcon :value="record.MaterialCode" />
-      </template>
-    </template>
-      <template #headerCell="{ column }">
-        {{ column.title }}
-      </template>
-    </a-table>
+      @pageChange="queryData"
+    />
 
-    <div class="smart-query-table-page">
-      <a-pagination
-        showSizeChanger
-        showQuickJumper
-        show-less-items
-        :PageSizeOptions="PAGE_SIZE_OPTIONS"
-        :defaultPageSize="queryForm.PageSize"
-        v-model:current="queryForm.CurrentPage"
-        v-model:PageSize="queryForm.PageSize"
-        :total="total"
-        @change="queryData"
-        :show-total="(total) => `共${total}条`"
-      />
-    </div>
-
+    <!-- 物料表单弹窗 -->
     <MaterialFormModal ref="formModal" @reloadList="queryData" />
   </a-card>
 </template>
 <script setup>
-  import MaterialFormModal from './components/material-form-modal.vue';
   import { onMounted, reactive, ref } from 'vue';
-  import { message, Modal } from 'ant-design-vue';
-  import { categoryApi } from '/@/api/business/category/category-api';
-  import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
-  import TableOperator from '/@/components/support/table-operator/index.vue';
-  import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
-  import SmartCopyIcon from '/@/components/framework/smart-copy-icon/index.vue';
-  import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
+  import MaterialFormModal from './components/material-form-modal.vue'; //物料表单弹窗
+  import { categoryApi } from '/@/api/business/category/category-api'; //物料类别接口
+  import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const'; //分页大小选项
+  import TableOperator from '/@/components/support/table-operator/index.vue'; //表格操作组件
+  import { TABLE_ID_CONST } from '/@/constants/support/table-id-const'; //表格ID常量
+  import SmartTable from '/@/components/smartTable/smart-table.vue'; //表格组件
+  import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter'; //查询参数构建器
   import _ from 'lodash';
 
   // ---------------------------- 表格列 ----------------------------
@@ -135,10 +115,11 @@
   // ---------------------------- 查询数据表单和方法 ----------------------------
 
   const queryFormState = {
+    //查询入参
     CurrentPage: 1,
     PageSize: 10,
     OrderByType: 'Asc',
-    OrderByFileds:'CreateTime',
+    OrderByFileds: 'CreateTime',
     CategoryName: undefined,
   };
   // 查询表单form
@@ -172,13 +153,12 @@
     queryData();
   }
 
- 
-
   // 查询数据
   async function queryData() {
     tableLoading.value = true;
     const filterConfig = {
-      CategoryName: FILTER_TYPE.CONTAINS
+      //查询参数配置(就是filters的入参配置)
+      CategoryName: FILTER_TYPE.CONTAINS,
     };
     try {
       // 使用 buildFilterParams 构建筛选参数
@@ -186,7 +166,7 @@
       // 将 filters 添加到查询参数中
       const requestParams = {
         ...cleanQueryForm,
-        filters
+        filters,
       };
       let queryResult = await categoryApi.GetMaterialRecordForPaged(requestParams);
       tableData.value = queryResult.Data;
@@ -205,32 +185,4 @@
   function addGoods(goodsData) {
     formModal.value.showDrawer(goodsData);
   }
-
-  // 动态设置表格高度
-  const yHeight = ref(0);
-  onMounted(() => {
-    resetGetHeight();
-  });
-  function resetGetHeight() {
-    // 搜索部分高度
-    let doc = document.querySelector('.ant-form');
-    // 按钮部分高度
-    let btn = document.querySelector('.smart-table-btn-block');
-    // 表格头高度
-    let tableCell = document.querySelector('.ant-table-cell');
-    // 分页高度
-    let page = document.querySelector('.smart-query-table-page');
-    // 内容区总高度
-    let box = document.querySelector('.admin-content');
-    setTimeout(() => {
-      let dueHeight = doc.offsetHeight + 10 + 24 + btn.offsetHeight + 15 + tableCell.offsetHeight + page.offsetHeight + 20;
-      yHeight.value = box.offsetHeight - dueHeight;
-    }, 100);
-  }
-  window.addEventListener(
-    'resize',
-    _.throttle(() => {
-      resetGetHeight();
-    }, 1000)
-  );
 </script>

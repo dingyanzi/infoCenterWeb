@@ -1,14 +1,5 @@
-<!--
-  * 系统设置表单
-  * 
-  * @Author:    1024创新实验室-主任：卓大 
-  * @Date:      2022-06-08 21:50:41 
-  * @Wechat:    zhuda1024 
-  * @Email:     lab1024@163.com 
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012 
--->
 <template>
-  <a-modal :open="visible" :title="form.configId ? $t('config.form.title.edit') : $t('config.form.title.add')" :ok-text="$t('config.form.button.ok')" :cancel-text="$t('config.form.button.cancel')" @ok="onSubmit" @cancel="onClose">
+  <a-modal :open="visible" :title="form.ConfigId ? $t('config.form.title.edit') : $t('config.form.title.add')" :ok-text="$t('config.form.button.ok')" :cancel-text="$t('config.form.button.cancel')" @ok="onSubmit" @cancel="onClose">
     <a-form ref="formRef" :model="form" :rules="rules" :label-col="{ span: 6 }" label-wrap>
       <a-form-item :label="$t('config.form.label.key')" name="ConfigKey">
         <a-input v-model:value="form.ConfigKey" :placeholder="$t('config.form.placeholder.key')" />
@@ -42,7 +33,7 @@
   const formRef = ref();
 
   const formDefault = {
-    configId: undefined,
+    ConfigId: undefined,
     ConfigKey: '',
     ConfigName: '',
     ConfigValue: '',
@@ -58,6 +49,7 @@
   const visible = ref(false);
 
   function showModal(rowData) {
+    console.log('rowData', rowData);
     Object.assign(form, formDefault);
     if (rowData) {
       Object.assign(form, rowData);
@@ -77,12 +69,12 @@
       .then(async () => {
         SmartLoading.show();
         try {
-          if (form.configId) {
+          if (form.ConfigId) {
             await configApi.updateConfig(form);
           } else {
             await configApi.addConfig(form);
           }
-          message.success(form.configId ? t('config.form.message.updateSuccess') : t('config.form.message.addSuccess'));
+          message.success(form.ConfigId ? t('config.form.message.updateSuccess') : t('config.form.message.addSuccess'));
           emit('reloadList');
           onClose();
         } catch (error) {

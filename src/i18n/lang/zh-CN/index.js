@@ -175,7 +175,7 @@ export default {
   'config.list.button.search': '查询',
   'config.list.button.reset': '重置',
   'config.list.button.add': '新建',
-  'config.list.column.id': 'id',
+  'config.list.column.id': 'ID',
   'config.list.column.key': '参数key',
   'config.list.column.name': '参数名称',
   'config.list.column.value': '参数值',

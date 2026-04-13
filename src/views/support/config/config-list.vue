@@ -1,18 +1,14 @@
-<!--
-  * 系统设置 列表
-  *
-  * @Author:    1024创新实验室-主任：卓大
-  * @Date:      2022-06-08 21:50:41
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
--->
 <template>
   <div>
     <a-form class="smart-query-form">
       <a-row class="smart-query-form-row">
         <a-form-item :label="$t('config.list.query.label.key')" class="smart-query-form-item">
-          <a-input @keyup.enter="onSearch" style="width: 300px" v-model:value="queryForm.ConfigKey" :placeholder="$t('config.list.query.placeholder.key')" />
+          <a-input
+            @keyup.enter="onSearch"
+            style="width: 300px"
+            v-model:value="queryForm.ConfigKey"
+            :placeholder="$t('config.list.query.placeholder.key')"
+          />
         </a-form-item>
 
         <a-form-item class="smart-query-form-item smart-margin-left10">
@@ -45,30 +41,26 @@
         <TableOperator class="smart-margin-bottom5" v-model="columns" :tableId="TABLE_ID_CONST.SUPPORT.CONFIG" :refresh="ajaxQuery" />
       </a-row>
 
-      <a-table size="small" :loading="tableLoading" bordered :dataSource="tableData" :columns="columns" rowKey="ConfigId" :pagination="false">
-        <template #bodyCell="{ record, column }">
-          <template v-if="column.dataIndex === 'action'">
-            <div class="smart-table-operate">
-              <a-button @click="toEditOrAdd(record)" v-privilege="'support:config:update'" type="link">{{ $t('config.list.operate.edit') }}</a-button>
-            </div>
-          </template>
+      <SmartTable
+        :loading="tableLoading"
+        :dataSource="tableData"
+        :columns="columns"
+        rowKey="ConfigId"
+        :total="total"
+        :pageSizeOptions="PAGE_SIZE_OPTIONS"
+        :queryForm="{
+          currentPage: queryForm.CurrentPage,
+          pageSize: queryForm.pageSize,
+        }"
+        :showTotal="(total) => $t('config.list.pagination.total', { total })"
+        @pageChange="ajaxQuery"
+      >
+        <template #action="{ record }">
+          <div class="smart-table-operate">
+            <a-button @click="toEditOrAdd(record)" v-privilege="'support:config:update'" type="link">{{ $t('config.list.operate.edit') }}</a-button>
+          </div>
         </template>
-      </a-table>
-
-      <div class="smart-query-table-page">
-        <a-pagination
-          showSizeChanger
-          showQuickJumper
-          show-less-items
-          :pageSizeOptions="PAGE_SIZE_OPTIONS"
-          :defaultPageSize="queryForm.pageSize"
-          v-model:current="queryForm.CurrentPage"
-          v-model:pageSize="queryForm.pageSize"
-          :total="total"
-          @change="ajaxQuery"
-          :show-total="(total) => $t('config.list.pagination.total', { total })"
-        />
-      </div>
+      </SmartTable>
     </a-card>
     <ConfigFormModal ref="configFormModal" @reloadList="resetQuery" />
   </div>
@@ -76,56 +68,56 @@
 <script setup>
   import { onMounted, reactive, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
-  
+
   const { t } = useI18n();
   import { configApi } from '/@/api/support/config-api';
   import ConfigFormModal from './config-form-modal.vue';
   import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
   import { smartSentry } from '/@/lib/smart-sentry';
   import TableOperator from '/@/components/support/table-operator/index.vue';
+  import SmartTable from '/@/components/smartTable/smart-table.vue';
   import { TABLE_ID_CONST } from '/@/constants/support/table-id-const';
   import { buildFilterParams, FILTER_TYPE } from '/@/utils/smart-filter';
 
   const columns = ref([
     {
-      title: () => t('config.list.column.id'),
+      title: t('config.list.column.id'),
       width: 50,
       dataIndex: 'ConfigId',
     },
     {
-      title: () => t('config.list.column.key'),
+      title: t('config.list.column.key'),
       dataIndex: 'ConfigKey',
       ellipsis: true,
     },
     {
-      title: () => t('config.list.column.name'),
+      title: t('config.list.column.name'),
       dataIndex: 'ConfigName',
       ellipsis: true,
     },
     {
-      title: () => t('config.list.column.value'),
+      title: t('config.list.column.value'),
       dataIndex: 'ConfigValue',
       ellipsis: true,
     },
     {
-      title: () => t('config.list.column.remark'),
+      title: t('config.list.column.remark'),
       dataIndex: 'Remark',
       ellipsis: true,
       width: 150,
     },
     {
-      title: () => t('config.list.column.createTime'),
+      title: t('config.list.column.createTime'),
       dataIndex: 'CreateTime',
       width: 150,
     },
     {
-      title: () => t('config.list.column.updateTime'),
+      title: t('config.list.column.updateTime'),
       dataIndex: 'UpdateTime',
       width: 150,
     },
-
     {
-      title: () => t('config.list.column.operate'),
+      title: t('config.list.column.operate'),
       dataIndex: 'action',
       fixed: 'right',
       width: 60,
@@ -138,8 +130,8 @@
     ConfigKey: '',
     CurrentPage: 1,
     pageSize: 10,
-    OrderByType:'Asc',
-    OrderByFileds:'ConfigKey'
+    OrderByType: 'Asc',
+    OrderByFileds: 'ConfigKey',
   };
   const queryForm = reactive({ ...queryFormState });
 
