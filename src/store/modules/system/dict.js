@@ -18,35 +18,35 @@ export const useDictStore = defineStore({
       return this.dictList;
     },
     // 获取字典数据
-    getDictData(dictCode) {
-      if (!dictCode) {
+    getDictData(DictCode) {
+      if (!DictCode) {
         return [];
       }
-      let dictDataList = this.dictMap.get(dictCode);
+      let dictDataList = this.dictMap.get(DictCode);
       return dictDataList ? dictDataList : [];
     },
 
     // 获取字典的值名称
-    getDataList(dictCode, dataValue) {
+    getDataList(DictCode, dataValue) {
       if (_.isNil(dataValue) || _.isNaN(dataValue)) {
         return '';
       }
 
-      let dict = this.getDictData(dictCode);
+      let dict = this.getDictData(DictCode);
       if (dict.length === 0) {
         return '';
       }
 
       // 是数字的话，需要特殊处理
       if (_.isNumber(dataValue)) {
-        let target = _.find(dict, { dataValue: String(dataValue) });
-        return target ? target.dataLabel : '';
+        let target = _.find(dict, { DataValue: String(dataValue) });
+        return target ? target.DataLabel : '';
       }
 
       let valueArray = dataValue.split(DICT_SPLIT);
       let result = [];
       for (let item of valueArray) {
-        let target = _.find(dict, { dataValue: item });
+        let target = _.find(dict, { DataValue: item });
         if (target) {
           result.push(target);
         }
@@ -55,28 +55,28 @@ export const useDictStore = defineStore({
     },
 
     // 获取字典的值名称
-    getDataLabels(dictCode, dataValue) {
+    getDataLabels(DictCode, dataValue) {
       if (_.isNil(dataValue) || _.isNaN(dataValue)) {
         return '';
       }
 
-      let dict = this.getDictData(dictCode);
+      let dict = this.getDictData(DictCode);
       if (dict.length === 0) {
         return '';
       }
 
       // 是数字的话，需要特殊处理
       if (_.isNumber(dataValue)) {
-        let target = _.find(dict, { dataValue: String(dataValue) });
-        return target ? target.dataLabel : '';
+        let target = _.find(dict, { DataValue: String(dataValue) });
+        return target ? target.DataLabel : '';
       }
 
       let valueArray = dataValue.split(DICT_SPLIT);
       let result = [];
       for (let item of valueArray) {
-        let target = _.find(dict, { dataValue: item });
+        let target = _.find(dict, { DataValue: item });
         if (target) {
-          result.push(target.dataLabel);
+          result.push(target.DataLabel);
         }
       }
       return result.join(DICT_SPLIT);
@@ -85,6 +85,7 @@ export const useDictStore = defineStore({
     async refreshData(){
       try{
         const dictRes = await dictApi.getAllDictData();
+        console.log('@@',dictRes.data)
         this.initData(dictRes.data);
       }catch (e){
         smartSentry.captureError(e);
@@ -96,14 +97,14 @@ export const useDictStore = defineStore({
       this.dictList = [];
 
       for (let data of dictDataList) {
-        if (!_.some(this.dictList, { dictCode: data.dictCode })) {
-          this.dictList.push({ dictCode: data.dictCode, dictName: data.dictName ,disabledFlag: data.dictDisabledFlag});
+        if (!_.some(this.dictList, { DictCode: data.DictCode })) {
+          this.dictList.push({ DictCode: data.DictCode, DictName: data.DictName ,disabledFlag: data.dictDisabledFlag});
         }
 
-        let dataArray = this.dictMap.get(data.dictCode);
+        let dataArray = this.dictMap.get(data.DictCode);
         if (!dataArray) {
           dataArray = [];
-          this.dictMap.set(data.dictCode, dataArray);
+          this.dictMap.set(data.DictCode, dataArray);
         }
         dataArray.push(data);
       }

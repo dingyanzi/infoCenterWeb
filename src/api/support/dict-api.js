@@ -22,7 +22,7 @@ export const dictApi = {
 
   // 获取全部字典数据 @author 1024创新实验室-主任-卓大
   getAllDictData: () => {
-    return getRequest('/support/dict/getAllDictData');
+    return getRequest('/BasicInfo/GetAllDictAndEnumList');
   },
 
   // 分页查询 @author 1024创新实验室-主任-卓大

@@ -1,13 +1,3 @@
-<!---
-  * 字段 下拉选择框
-  *
-  * @Author:    1024创新实验室：罗伊
-  * @Date:      2022-09-12 22:06:45
-  * @Wechat:    zhuda1024
-  * @Email:     lab1024@163.com
-  * @Copyright  1024创新实验室 （ https://1024lab.net ），Since 2012
-  *
--->
 <template>
   <div>
     <a-select
@@ -20,8 +10,8 @@
       @change="onChange"
       :disabled="disabled"
     >
-      <a-select-option v-for="item in dictDataList" :key="item.dataValue" :value="item.dataValue" :disabled="disabledOption.includes(item.valueCode)">
-        {{ item.dataLabel }}
+      <a-select-option v-for="item in dictDataList" :key="item.DataValue" :value="item.DataValue" :disabled="disabledOption.includes(item.DataValue)">
+        {{ item.DataLabel }}
       </a-select-option>
     </a-select>
   </div>
@@ -72,7 +62,7 @@
   const dictDataList = computed(() =>
     useDictStore()
       .getDictData(props.dictCode)
-      .filter((item) => !props.hiddenOption.includes(item.dataValue) && !item.disabledFlag)
+      .filter((item) => !props.hiddenOption.includes(item.DataValue) && !item.DisabledFlag)
   );
 
   // -------------------------- 选中 相关、事件 --------------------------

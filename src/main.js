@@ -47,7 +47,7 @@ import { dictApi } from '/@/api/support/dict-api.js';
  */
 async function getLoginInfo() {
   try {
-    // const dictRes = await dictApi.getAllDictData();
+    const dictRes = await dictApi.getAllDictData();
     //构建系统的路由
     const [resUser, resMenu] = await Promise.all([
       loginApi.getUserInfo(),
@@ -56,7 +56,7 @@ async function getLoginInfo() {
     buildRoutes(resMenu.data);
     initVue();
     // 初始化数据字典
-    // useDictStore().initData(dictRes.data);
+    useDictStore().initData(dictRes.data);
     //更新用户信息到pinia
     useUserStore().setUserLoginInfo(resUser.data, resMenu.data);
   } catch (e) {
