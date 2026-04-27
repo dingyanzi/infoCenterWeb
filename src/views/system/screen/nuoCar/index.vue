@@ -16,10 +16,10 @@
           <img class="titImg" :src="titBgImg" alt="" />
           <div class="title">关键指标</div>
           <div class="kpi-grid">
-            <div v-for="item in kpiList" :key="item.id" class="equipment-card" >
+            <div v-for="item in kpiList" :key="item.id" class="equipment-card">
               <div class="icon-box">
                 <div class="circle-ring"></div>
-                <img  class="equipment-icon" :src="item.ico" alt="" />
+                <img class="equipment-icon" :src="item.ico" alt="" />
               </div>
               <div class="equipment-info">
                 <div class="equipment-name">{{ item.name }}</div>
@@ -114,7 +114,33 @@
         <div class="outInView">
           <img class="titImg" :src="titBg2Img" alt="" />
           <div class="title">储位分布图</div>
-          <div class="outInList"></div>
+          <div class="storage-map">
+            <div class="warehouse-wrap">
+              <div v-for="(group, groupIndex) in storageGroups" :key="groupIndex" class="group">
+                <div class="grid">
+                  <div v-for="(row, rowIndex) in group" :key="rowIndex" class="row">
+                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
+                  </div>
+                </div>
+
+                <div v-if="groupIndex !== storageGroups.length - 1" class="divider"></div>
+              </div>
+            </div>
+            <div class="legend">
+              <div class="legend-item">
+                <span class="cube has"></span>
+                <span>有料</span>
+              </div>
+              <div class="legend-item">
+                <span class="cube empty"></span>
+                <span>空托</span>
+              </div>
+              <div class="legend-item">
+                <span class="cube lock"></span>
+                <span>锁定</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <!-- 右边内容 -->
@@ -176,8 +202,8 @@
   import headBgImg from '/@/assets/screen/headBg.png';
   import titBgImg from '/@/assets/screen/titBg.png';
   import titBg2Img from '/@/assets/screen/titBg2.png';
-  import k1 from '/@/assets/screen/k1.png'
-  import k2 from '/@/assets/screen/k2.png'
+  import k1 from '/@/assets/screen/k1.png';
+  import k2 from '/@/assets/screen/k2.png';
   import k3 from '/@/assets/screen/k3.png';
   // import { getHomePageLocationsStatistics } from '@/api/screen';
 
@@ -381,19 +407,19 @@
       id: 1,
       name: '当前库存总数',
       value: '12,845',
-      ico:k1
+      ico: k1,
     },
     {
       id: 2,
       name: '今日入库数量',
       value: '600',
-      ico:k2
+      ico: k2,
     },
     {
       id: 3,
       name: '今日出库数量',
       value: '1,032',
-      ico:k3
+      ico: k3,
     },
   ];
   // 设备实时状态
@@ -419,6 +445,58 @@
       status: '运行中',
     },
   ];
+
+  //储位分布图
+  const storageGroups = [
+    [
+      [2, 1, 1, 1, 2],
+      [0, 2, 1, 1, 1],
+      [1, 0, 1, 2, 0],
+      [2, 3, 2, 2, 2],
+      [1, 0, 1, 3, 0],
+      [0, 1, 2, 1, 0],
+      [0, 0, 0, 1, 0],
+      [0, 0, 0, 1, 0],
+    ],
+    [
+      [2, 1, 1, 1, 0, 0],
+      [1, 2, 1, 1, 1, 3],
+      [1, 1, 2, 1, 1, 1],
+      [0, 1, 1, 2, 1, 1],
+      [1, 0, 2, 1, 2, 1],
+      [2, 0, 1, 0, 1, 1],
+      [0, 1, 2, 1, 2, 1],
+      [0, 0, 1, 0, 1, 0],
+      [0, 0, 0, 1, 0, 0],
+    ],
+    [
+      [1, 2, 1, 0],
+      [1, 1, 2, 0],
+      [3, 1, 1, 2],
+      [0, 3, 1, 1],
+      [0, 0, 0, 1],
+      [0, 0, 1, 0],
+    ],
+    [
+      [1, 0, 0, 0, 0, 0],
+      [3, 1, 0, 0, 0, 0],
+      [2, 3, 0, 0, 0, 0],
+      [3, 2, 1, 0, 0, 0],
+      [1, 1, 2, 1, 0, 0],
+      [1, 1, 1, 2, 1, 1],
+      [0, 1, 1, 1, 2, 1],
+      [2, 1, 1, 1, 2, 0],
+      [2, 2, 1, 1, 1, 1],
+    ],
+  ];
+
+  const getClass = (type) => {
+    if (type === 1) return 'has';
+    if (type === 2) return 'empty';
+    if (type === 3) return 'lock';
+    return 'hidden';
+  };
+
   // 生命周期
   onMounted(() => {
     setScale();
