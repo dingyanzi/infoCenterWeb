@@ -963,8 +963,21 @@ body {
     box-sizing: border-box;
     background: #fff;
     position: relative;
+    box-shadow:
+      inset -3px -3px 0 rgba(0, 0, 0, 0.12),
+      inset 3px 3px 0 rgba(255, 255, 255, 0.65);
   }
-
+  .cell::before,
+  .cube::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.35);
+    pointer-events: none;
+  }
   /* 纯2D平面效果 */
   .has {
     background: #5c9ddf;
