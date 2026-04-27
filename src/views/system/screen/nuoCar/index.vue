@@ -387,12 +387,12 @@
     const option = {
       color: ['#2174FF', '#07A872', '#F6D91E', '#F5787B', '#000'],
       tooltip: { trigger: 'item' },
-      legend: { orient: 'vertical', left: '-1%', top: '10%', textStyle: { color: '#fff' } },
+      legend: { orient: 'vertical', left: '-1%', top: '0%', textStyle: { color: '#fff' } },
       series: [
         {
           type: 'pie',
           radius: ['40%', '60%'],
-          center: ['54%', '60%'],
+          center: ['50%', '60%'],
           data: homePageLocationsStatistics.value,
           label: { show: true, color: '#fff', formatter: '{b}: {c}' },
         },
