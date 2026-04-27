@@ -198,7 +198,7 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue';
   import * as echarts from 'echarts';
-  import logoImg from '/@/assets/images/logo/smart-admin-logo.png';
+  import logoImg from '/@/assets/screen/logo-nb2.png';
   import headBgImg from '/@/assets/screen/headBg.png';
   import titBgImg from '/@/assets/screen/titBg.png';
   import titBg2Img from '/@/assets/screen/titBg2.png';
