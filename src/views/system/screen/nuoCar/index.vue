@@ -15,6 +15,20 @@
         <div class="dayView">
           <img class="titImg" :src="titBgImg" alt="" />
           <div class="title">关键指标</div>
+          <div class="kpi-grid">
+            <div v-for="item in kpiList" :key="item.id" class="equipment-card">
+              <div class="icon-box">
+                <div class="circle-ring"></div>
+                <img  class="equipment-icon" :src="item.ico" alt="" />
+              </div>
+              <div class="equipment-info">
+                <div class="equipment-name">{{ item.name }}</div>
+                <div class="equipment-status">
+                  {{ item.value }}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- 毛坯/喷漆件占比 -->
         <div class="orderView">
@@ -35,6 +49,66 @@
         <div class="taskView">
           <img class="titImg" :src="titBg2Img" alt="" />
           <div class="title">全景（库区分布图）</div>
+          <!-- 主体区域 -->
+          <div class="storage-layout">
+            <!-- 左通道 -->
+            <div class="side-channel">
+              <span>通道</span>
+            </div>
+
+            <!-- 第一个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
+
+            <!-- 左堆垛机 -->
+            <div class="stacker-wrapper">
+              <!-- 从上到下完整通道 -->
+              <div class="stacker-track"></div>
+
+              <!-- 中间堆垛机 -->
+              <div class="stacker-machine">
+                <div class="machine-core"></div>
+              </div>
+            </div>
+
+            <!-- 第二个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
+
+            <!-- 右堆垛机 -->
+            <div class="stacker-wrapper">
+              <!-- 从上到下完整通道 -->
+              <div class="stacker-track"></div>
+
+              <!-- 中间堆垛机 -->
+              <div class="stacker-machine">
+                <div class="machine-core"></div>
+              </div>
+            </div>
+
+            <!-- 第三个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
+
+            <!-- 右通道 -->
+            <div class="side-channel">
+              <span>通道</span>
+            </div>
+          </div>
+
+          <!-- 底部通道 -->
+          <div class="bottom-channel">
+            <span>通道</span>
+          </div>
         </div>
         <!-- 储位分布图 -->
         <div class="outInView">
@@ -75,7 +149,20 @@
         <div class="materialAgeView">
           <img class="titImg" :src="titBgImg" alt="" />
           <div class="title">设备实时状态</div>
-          <div class="materialAgeNumList"></div>
+          <div class="equipment-grid">
+            <div v-for="item in equipmentList" :key="item.id" class="equipment-card">
+              <div class="icon-box">
+                <div class="circle-ring"></div>
+                <div class="equipment-icon">🏗</div>
+              </div>
+              <div class="equipment-info">
+                <div class="equipment-name">{{ item.name }}</div>
+                <div class="equipment-status" :class="item.status === '运行中' ? 'running' : 'warning'">
+                  {{ item.status }}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -89,6 +176,9 @@
   import headBgImg from '/@/assets/screen/headBg.png';
   import titBgImg from '/@/assets/screen/titBg.png';
   import titBg2Img from '/@/assets/screen/titBg2.png';
+  import k1 from '/@/assets/screen/k1.png'
+  import k2 from '/@/assets/screen/k2.png'
+  import k3 from '/@/assets/screen/k3.png';
   // import { getHomePageLocationsStatistics } from '@/api/screen';
 
   // 响应式数据
@@ -100,13 +190,10 @@
     { value: 0, name: '禁用', key: 'DisCount' },
   ]);
 
-  // 定时器变量
-  let timer = null;
-  let dataRefreshTimer = null;
   // ECharts 实例
   let charts = [];
 
-  // 方法
+  // 设置屏幕缩放比例
   const setScale = () => {
     const screenView = document.querySelector('.screenView');
     if (!screenView) return;
@@ -132,19 +219,10 @@
     getOrderRatioFun(); //毛坯/喷漆件占比
     getHomePageLocationsStatisticsFun(); //货位使用统计
   };
-
-  // 接口数据直接赋值这里
-  const rough = ref(70);
-  const paint = ref(40);
-
-  // 输送线任务
-  const getMaterialTrayCountFun = () => {
-    // getMaterialTrayCount().then(res => {
-    //   if (res.status === 200) {
-    //     GetMaterialTrayCountEchart();
-    //   }
-    // })
-    GetMaterialTrayCountEchart();
+  // ECharts 工具函数：注册图表，方便统一销毁
+  const registerChart = (chart) => {
+    charts.push(chart);
+    return chart;
   };
 
   // 货位使用统计
@@ -161,13 +239,9 @@
     GetHomePageLocationsStatisticsEchart();
   };
 
-  // ECharts 工具函数：注册图表，方便统一销毁
-  const registerChart = (chart) => {
-    charts.push(chart);
-    return chart;
-  };
-
   //毛坯/喷漆件占比
+  const rough = ref(70);
+  const paint = ref(40);
   const getOrderRatioFun = () => {
     // getOrderRatio().then(res => {
     //   if (res.status === 200) {
@@ -220,8 +294,15 @@
     myChart.setOption(option);
     window.addEventListener('resize', () => myChart.resize());
   };
-
   // 输送线任务
+  const getMaterialTrayCountFun = () => {
+    // getMaterialTrayCount().then(res => {
+    //   if (res.status === 200) {
+    //     GetMaterialTrayCountEchart();
+    //   }
+    // })
+    GetMaterialTrayCountEchart();
+  };
   const GetMaterialTrayCountEchart = () => {
     const myChart = registerChart(echarts.init(document.getElementById('materialNum')));
     const option = {
@@ -280,12 +361,12 @@
     const option = {
       color: ['#2174FF', '#07A872', '#F6D91E', '#F5787B', '#000'],
       tooltip: { trigger: 'item' },
-      legend: { orient: 'vertical', left: '1%', top: '10%', textStyle: { color: '#fff' } },
+      legend: { orient: 'vertical', left: '-1%', top: '10%', textStyle: { color: '#fff' } },
       series: [
         {
           type: 'pie',
           radius: ['40%', '60%'],
-          center: ['46%', '60%'],
+          center: ['54%', '60%'],
           data: homePageLocationsStatistics.value,
           label: { show: true, color: '#fff', formatter: '{b}: {c}' },
         },
@@ -294,7 +375,50 @@
     myChart.setOption(option);
     window.addEventListener('resize', () => myChart.resize());
   };
-
+  // 关键指标
+  const kpiList = [
+    {
+      id: 1,
+      name: '当前库存总数',
+      value: '12,845',
+      ico:k1
+    },
+    {
+      id: 2,
+      name: '今日入库数量',
+      value: '600',
+      ico:k2
+    },
+    {
+      id: 3,
+      name: '今日出库数量',
+      value: '1,032',
+      ico:k3
+    },
+  ];
+  // 设备实时状态
+  const equipmentList = [
+    {
+      id: 1,
+      name: '堆垛机-1号',
+      status: '运行中',
+    },
+    {
+      id: 2,
+      name: '堆垛机-2号',
+      status: '运行中',
+    },
+    {
+      id: 3,
+      name: '堆垛机-3号',
+      status: '运行中',
+    },
+    {
+      id: 4,
+      name: '堆垛机-4号',
+      status: '运行中',
+    },
+  ];
   // 生命周期
   onMounted(() => {
     setScale();
