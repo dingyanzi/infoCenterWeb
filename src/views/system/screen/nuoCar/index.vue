@@ -16,7 +16,7 @@
           <img class="titImg" :src="titBgImg" alt="" />
           <div class="title">关键指标</div>
           <div class="kpi-grid">
-            <div v-for="item in kpiList" :key="item.id" class="equipment-card">
+            <div v-for="item in kpiList" :key="item.id" class="equipment-card" >
               <div class="icon-box">
                 <div class="circle-ring"></div>
                 <img  class="equipment-icon" :src="item.ico" alt="" />

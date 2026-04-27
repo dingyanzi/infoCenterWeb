@@ -684,6 +684,7 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 18px;
   margin-top: 30px;
+
   .equipment-card {
     display: flex;
     align-items: center;
@@ -716,14 +717,14 @@ body {
     }
 
     .equipment-name {
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 600;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
       color: #ffffff;
     }
 
     .equipment-status {
-      font-size: 16px;
+      font-size: 22px;
       font-weight: 700;
       color: #50ffffe6;
     }
@@ -736,6 +737,10 @@ body {
     .warning {
       color: #ffb84d;
     }
+  }
+  /* 只加在你 CSS 最后面即可 */
+  .equipment-card:first-child {
+    grid-column: 1 / -1;
   }
 }
 /* =========================
