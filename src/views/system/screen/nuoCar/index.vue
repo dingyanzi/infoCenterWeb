@@ -5,7 +5,6 @@
       <img class="logoImg" :src="logoImg" alt="" />
       <img class="headImg" :src="headBgImg" alt="" />
       <div class="title">诺博智能仓储可视化看板</div>
-      <!-- <div class="subTitle">2号库</div> -->
     </div>
     <!-- 内容区域 -->
     <div class="contentBg">
@@ -197,7 +196,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted ,onBeforeUnmount } from 'vue';
+  import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
   import * as echarts from 'echarts';
   import * as signalR from '@microsoft/signalr';
   import logoImg from '/@/assets/screen/logo-nb2.png';
@@ -208,16 +207,6 @@
   import k2 from '/@/assets/screen/k2.png';
   import k3 from '/@/assets/screen/k3.png';
   import iconDdj from '/@/assets/screen/ico1.png';
-  // import { getHomePageLocationsStatistics } from '@/api/screen';
-
-  // 响应式数据
-  const homePageLocationsStatistics = ref([
-    { value: 0, name: '占用', key: 'InStockCount' },
-    { value: 0, name: '空货位', key: 'EmptyCount' },
-    { value: 0, name: '预留入库', key: 'PreInCount' },
-    { value: 0, name: '预留出库', key: 'PreOutCount' },
-    { value: 0, name: '禁用', key: 'DisCount' },
-  ]);
 
   // ECharts 实例
   let charts = [];
@@ -246,26 +235,12 @@
   const initData = () => {
     getMaterialTrayCountFun(); //输送线任务
     getOrderRatioFun(); //毛坯/喷漆件占比
-    getHomePageLocationsStatisticsFun(); //货位使用统计
+    getHomePageLocationsStatisticsFun(); //库位利用率
   };
   // ECharts 工具函数：注册图表，方便统一销毁
   const registerChart = (chart) => {
     charts.push(chart);
     return chart;
-  };
-
-  // 货位使用统计
-  const getHomePageLocationsStatisticsFun = () => {
-    // getHomePageLocationsStatistics().then(res => {
-    //   if (res.status === 200) {
-    //     const data = res.data;
-    //     homePageLocationsStatistics.value = homePageLocationsStatistics.value.map(item => ({
-    //       ...item, value: Number(data[item.key]) || 0
-    //     }));
-    //     GetHomePageLocationsStatisticsEchart();
-    //   }
-    // });
-    GetHomePageLocationsStatisticsEchart();
   };
 
   //毛坯/喷漆件占比
@@ -323,6 +298,7 @@
     myChart.setOption(option);
     window.addEventListener('resize', () => myChart.resize());
   };
+
   // 输送线任务
   const getMaterialTrayCountFun = () => {
     // getMaterialTrayCount().then(res => {
@@ -384,7 +360,26 @@
     window.addEventListener('resize', () => myChart.resize());
   };
 
-  // 货位使用统计饼图
+  // 库位利用率
+  const homePageLocationsStatistics = ref([
+    { value: 0, name: '占用', key: 'InStockCount' },
+    { value: 0, name: '空货位', key: 'EmptyCount' },
+    { value: 0, name: '预留入库', key: 'PreInCount' },
+    { value: 0, name: '预留出库', key: 'PreOutCount' },
+    { value: 0, name: '禁用', key: 'DisCount' },
+  ]);
+  const getHomePageLocationsStatisticsFun = () => {
+    // getHomePageLocationsStatistics().then(res => {
+    //   if (res.status === 200) {
+    //     const data = res.data;
+    //     homePageLocationsStatistics.value = homePageLocationsStatistics.value.map(item => ({
+    //       ...item, value: Number(data[item.key]) || 0
+    //     }));
+    //     GetHomePageLocationsStatisticsEchart();
+    //   }
+    // });
+    GetHomePageLocationsStatisticsEchart();
+  };
   const GetHomePageLocationsStatisticsEchart = () => {
     const myChart = registerChart(echarts.init(document.getElementById('locationNum')));
     const option = {
@@ -404,6 +399,7 @@
     myChart.setOption(option);
     window.addEventListener('resize', () => myChart.resize());
   };
+
   // 关键指标
   const kpiList = [
     {
@@ -425,6 +421,7 @@
       ico: k3,
     },
   ];
+
   // 设备实时状态
   const equipmentList = [
     {
@@ -492,7 +489,6 @@
       [2, 2, 1, 1, 1, 1],
     ],
   ];
-
   const getClass = (type) => {
     if (type === 1) return 'has';
     if (type === 2) return 'empty';
@@ -500,10 +496,8 @@
     return 'hidden';
   };
 
-  // SignalR 连接对象
+  // 实时数据连接对象
   let connection = null;
-
-  // 初始化 SignalR
   function startSignalR() {
     // 1. 创建连接
     connection = new signalR.HubConnectionBuilder()
@@ -513,7 +507,7 @@
     // 2. 监听后端推送的方法名（后端会告诉你方法名）
     connection.on('ReceiveRealData', (data) => {
       // data 是后端推来的实时数据
-      console.log("实时数据", data);
+      console.log('实时数据', data);
     });
 
     // 3. 启动连接
@@ -533,8 +527,6 @@
       setTimeout(startSignalR, 3000);
     });
   }
-
-  // 关闭连接
   function stopSignalR() {
     if (connection) connection.stop();
   }

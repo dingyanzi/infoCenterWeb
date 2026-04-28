@@ -744,11 +744,24 @@ body {
   .equipment-card:first-child {
     grid-column: 1;
     grid-row: 1 / span 2;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    .equipment-info {
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      flex: none;
+    }
+
     .equipment-name {
       font-size: 16px;
+      margin-top: 5px;
     }
     .equipment-status {
-      font-size: 18px;
+      font-size: 26px;
     }
   }
 }
