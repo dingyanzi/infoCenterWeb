@@ -179,7 +179,8 @@
             <div v-for="item in equipmentList" :key="item.id" class="equipment-card">
               <div class="icon-box">
                 <div class="circle-ring"></div>
-                <div class="equipment-icon">🏗</div>
+                <!-- <div class="equipment-icon">🏗</div> -->
+                 <img class="equipment-img" :src="iconDdj" alt="" />
               </div>
               <div class="equipment-info">
                 <div class="equipment-name">{{ item.name }}</div>
@@ -205,6 +206,7 @@
   import k1 from '/@/assets/screen/k1.png';
   import k2 from '/@/assets/screen/k2.png';
   import k3 from '/@/assets/screen/k3.png';
+  import iconDdj from '/@/assets/screen/ico1.png';
   // import { getHomePageLocationsStatistics } from '@/api/screen';
 
   // 响应式数据
@@ -437,7 +439,7 @@
     {
       id: 3,
       name: '堆垛机-3号',
-      status: '运行中',
+      status: '异常',
     },
     {
       id: 4,
