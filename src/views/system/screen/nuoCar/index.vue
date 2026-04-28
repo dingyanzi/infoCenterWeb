@@ -180,7 +180,7 @@
               <div class="icon-box">
                 <div class="circle-ring"></div>
                 <!-- <div class="equipment-icon">🏗</div> -->
-                 <img class="equipment-img" :src="iconDdj" alt="" />
+                <img class="equipment-img" :src="iconDdj" alt="" />
               </div>
               <div class="equipment-info">
                 <div class="equipment-name">{{ item.name }}</div>
@@ -197,8 +197,9 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
+  import { ref, computed, onMounted ,onBeforeUnmount } from 'vue';
   import * as echarts from 'echarts';
+  import * as signalR from '@microsoft/signalr';
   import logoImg from '/@/assets/screen/logo-nb2.png';
   import headBgImg from '/@/assets/screen/headBg.png';
   import titBgImg from '/@/assets/screen/titBg.png';
@@ -499,21 +500,55 @@
     return 'hidden';
   };
 
+  // SignalR 连接对象
+  let connection = null;
+
+  // 初始化 SignalR
+  function startSignalR() {
+    // 1. 创建连接
+    connection = new signalR.HubConnectionBuilder()
+      .withUrl('http://localhost:9291/chatHub') // 后端地址
+      .build();
+
+    // 2. 监听后端推送的方法名（后端会告诉你方法名）
+    connection.on('ReceiveRealData', (data) => {
+      // data 是后端推来的实时数据
+      console.log("实时数据", data);
+    });
+
+    // 3. 启动连接
+    connection
+      .start()
+      .then(() => {
+        initData();
+      })
+      .catch((err) => {
+        // console.error('连接失败', err);
+        setTimeout(startSignalR, 3000); // 自动重连
+      });
+
+    // 4. 断开重连
+    connection.onclose(() => {
+      console.log('❌ 断开，正在重连...');
+      setTimeout(startSignalR, 3000);
+    });
+  }
+
+  // 关闭连接
+  function stopSignalR() {
+    if (connection) connection.stop();
+  }
+
   // 生命周期
   onMounted(() => {
+    // startSignalR();
     setScale();
     window.addEventListener('resize', setScale);
     initData();
   });
-  // onUnmounted(() => {
-  //   // 清理定时器
-  //   clearInterval(timer);
-  //   clearInterval(dataRefreshTimer);
-  //   // 清理事件监听
-  //   window.removeEventListener('resize', setScale);
-  //   // 销毁 ECharts 实例
-  //   charts.forEach((chart) => chart.dispose());
-  // });
+  onBeforeUnmount(() => {
+    stopSignalR();
+  });
 </script>
 
 <style scoped lang="less">
