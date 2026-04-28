@@ -720,14 +720,14 @@ body {
     }
 
     .equipment-name {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       margin-bottom: 5px;
       color: #ffffff;
     }
 
     .equipment-status {
-      font-size: 22px;
+      font-size: 18px;
       font-weight: 700;
       color: #50ffffe6;
     }
@@ -741,9 +741,15 @@ body {
       color: #ffb84d;
     }
   }
-  /* 只加在你 CSS 最后面即可 */
   .equipment-card:first-child {
-    grid-column: 1 / -1;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    .equipment-name {
+      font-size: 16px;
+    }
+    .equipment-status {
+      font-size: 18px;
+    }
   }
 }
 /* =========================
