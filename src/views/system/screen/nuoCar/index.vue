@@ -54,15 +54,13 @@
             <div class="side-channel">
               <span>通道</span>
             </div>
-
             <!-- 第一个库区 -->
             <div class="storage-area">
               <div class="area top-area">喷漆件区域</div>
               <div class="area middle-area">公共区域</div>
               <div class="area bottom-area">毛坯件区域</div>
             </div>
-
-            <!-- 左堆垛机 -->
+            <!-- 堆垛机1 -->
             <div class="stacker-wrapper">
               <!-- 从上到下完整通道 -->
               <div class="stacker-track"></div>
@@ -72,15 +70,13 @@
                 <div class="machine-core"></div>
               </div>
             </div>
-
             <!-- 第二个库区 -->
             <div class="storage-area">
               <div class="area top-area">喷漆件区域</div>
               <div class="area middle-area">公共区域</div>
               <div class="area bottom-area">毛坯件区域</div>
             </div>
-
-            <!-- 右堆垛机 -->
+            <!-- 堆垛机2 -->
             <div class="stacker-wrapper">
               <!-- 从上到下完整通道 -->
               <div class="stacker-track"></div>
@@ -90,14 +86,28 @@
                 <div class="machine-core"></div>
               </div>
             </div>
-
             <!-- 第三个库区 -->
             <div class="storage-area">
               <div class="area top-area">喷漆件区域</div>
               <div class="area middle-area">公共区域</div>
               <div class="area bottom-area">毛坯件区域</div>
             </div>
+            <!-- 堆垛机3 -->
+            <div class="stacker-wrapper">
+              <!-- 从上到下完整通道 -->
+              <div class="stacker-track"></div>
 
+              <!-- 中间堆垛机 -->
+              <div class="stacker-machine">
+                <div class="machine-core"></div>
+              </div>
+            </div>
+            <!-- 第四个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
             <!-- 右通道 -->
             <div class="side-channel">
               <span>通道</span>
@@ -196,353 +206,353 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-  import * as echarts from 'echarts';
-  import * as signalR from '@microsoft/signalr';
-  import logoImg from '/@/assets/screen/logo-nb2.png';
-  import headBgImg from '/@/assets/screen/headBg.png';
-  import titBgImg from '/@/assets/screen/titBg.png';
-  import titBg2Img from '/@/assets/screen/titBg2.png';
-  import k1 from '/@/assets/screen/k1.png';
-  import k2 from '/@/assets/screen/k2.png';
-  import k3 from '/@/assets/screen/k3.png';
-  import iconDdj from '/@/assets/screen/ico1.png';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import * as echarts from 'echarts';
+import * as signalR from '@microsoft/signalr';
+import logoImg from '/@/assets/screen/logo-nb2.png';
+import headBgImg from '/@/assets/screen/headBg.png';
+import titBgImg from '/@/assets/screen/titBg.png';
+import titBg2Img from '/@/assets/screen/titBg2.png';
+import k1 from '/@/assets/screen/k1.png';
+import k2 from '/@/assets/screen/k2.png';
+import k3 from '/@/assets/screen/k3.png';
+import iconDdj from '/@/assets/screen/ico1.png';
 
-  // ECharts 实例
-  let charts = [];
+// ECharts 实例
+let charts = [];
 
-  // 设置屏幕缩放比例
-  const setScale = () => {
-    const screenView = document.querySelector('.screenView');
-    if (!screenView) return;
+// 设置屏幕缩放比例
+const setScale = () => {
+  const screenView = document.querySelector('.screenView');
+  if (!screenView) return;
 
-    const designWidth = 1920;
-    const designHeight = 1080;
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
+  const designWidth = 1920;
+  const designHeight = 1080;
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
 
-    const scaleX = windowWidth / designWidth;
-    const scaleY = windowHeight / designHeight;
-    const scale = Math.max(scaleX, scaleY);
+  const scaleX = windowWidth / designWidth;
+  const scaleY = windowHeight / designHeight;
+  const scale = Math.max(scaleX, scaleY);
 
-    screenView.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    screenView.style.transformOrigin = 'center';
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-  };
+  screenView.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  screenView.style.transformOrigin = 'center';
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+};
 
-  // 初始化数据
-  const initData = () => {
-    getMaterialTrayCountFun(); //输送线任务
-    getOrderRatioFun(); //毛坯/喷漆件占比
-    getHomePageLocationsStatisticsFun(); //库位利用率
-  };
-  // ECharts 工具函数：注册图表，方便统一销毁
-  const registerChart = (chart) => {
-    charts.push(chart);
-    return chart;
-  };
+// 初始化数据
+const initData = () => {
+  getMaterialTrayCountFun(); //输送线任务
+  getOrderRatioFun(); //毛坯/喷漆件占比
+  getHomePageLocationsStatisticsFun(); //库位利用率
+};
+// ECharts 工具函数：注册图表，方便统一销毁
+const registerChart = (chart) => {
+  charts.push(chart);
+  return chart;
+};
 
-  //毛坯/喷漆件占比
-  const rough = ref(70);
-  const paint = ref(40);
-  const getOrderRatioFun = () => {
-    // getOrderRatio().then(res => {
-    //   if (res.status === 200) {
-    //     GetMaterialTrayCountEchart();
-    //   }
-    // })
-    GetOrderRatioEchart();
-  };
-  const GetOrderRatioEchart = () => {
-    const myChart = registerChart(echarts.init(document.getElementById('orderRatio')));
-    const option = {
-      xAxis: {
-        type: 'category',
-        data: ['毛坯件数量', '喷漆件数量'],
-        axisLabel: { color: '#fff' },
+//毛坯/喷漆件占比
+const rough = ref(70);
+const paint = ref(40);
+const getOrderRatioFun = () => {
+  // getOrderRatio().then(res => {
+  //   if (res.status === 200) {
+  //     GetMaterialTrayCountEchart();
+  //   }
+  // })
+  GetOrderRatioEchart();
+};
+const GetOrderRatioEchart = () => {
+  const myChart = registerChart(echarts.init(document.getElementById('orderRatio')));
+  const option = {
+    xAxis: {
+      type: 'category',
+      data: ['毛坯件数量', '喷漆件数量'],
+      axisLabel: { color: '#fff' },
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: '#fff' },
+    },
+    series: [
+      {
+        data: [120, 600],
+        type: 'bar',
+        label: {
+          show: true,
+          position: 'top',
+          color: '#fff',
+        },
+        // 给柱子单独设置颜色：第一个渐变蓝，第二个固定色
+        itemStyle: {
+          color: function (params) {
+            if (params.dataIndex === 0) {
+              return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#74b3ff' }, // 顶部浅蓝
+                { offset: 1, color: '#188df0' }, // 底部深蓝
+              ]);
+            } else {
+              return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#00ffff' },
+                { offset: 1, color: '#009999' },
+              ]);
+            }
+          },
+        },
       },
-      yAxis: {
-        type: 'value',
-        axisLabel: { color: '#fff' },
+    ],
+    legend: { textStyle: { color: '#fff' } },
+  };
+  myChart.setOption(option);
+  window.addEventListener('resize', () => myChart.resize());
+};
+
+// 输送线任务
+const getMaterialTrayCountFun = () => {
+  // getMaterialTrayCount().then(res => {
+  //   if (res.status === 200) {
+  //     GetMaterialTrayCountEchart();
+  //   }
+  // })
+  GetMaterialTrayCountEchart();
+};
+const GetMaterialTrayCountEchart = () => {
+  const myChart = registerChart(echarts.init(document.getElementById('materialNum')));
+  const option = {
+    legend: {},
+    tooltip: {},
+    dataset: {
+      source: [
+        ['product', '入库', '出库'],
+        ['注塑', 43.3, 85.8],
+        ['上件', 72.4, 53.9],
+        ['下件', 62.4, 73.9],
+        ['组装', 42.4, 63.9],
+      ],
+    },
+    xAxis: { type: 'category', axisLabel: { color: '#fff' } },
+    yAxis: { axisLabel: { color: '#fff' } },
+    series: [
+      {
+        type: 'bar',
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#4b9aff' },
+            { offset: 1, color: '#188df0' },
+          ]),
+        },
+        label: {
+          show: true,
+          position: 'top',
+          color: '#fff',
+        },
       },
-      series: [
-        {
-          data: [120, 600],
-          type: 'bar',
-          label: {
-            show: true,
-            position: 'top',
-            color: '#fff',
-          },
-          // 给柱子单独设置颜色：第一个渐变蓝，第二个固定色
-          itemStyle: {
-            color: function (params) {
-              if (params.dataIndex === 0) {
-                return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: '#74b3ff' }, // 顶部浅蓝
-                  { offset: 1, color: '#188df0' }, // 底部深蓝
-                ]);
-              } else {
-                return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: '#00ffff' },
-                  { offset: 1, color: '#009999' },
-                ]);
-              }
-            },
-          },
+      {
+        type: 'bar',
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#00ffff' },
+            { offset: 1, color: '#00a8a8' },
+          ]),
         },
-      ],
-      legend: { textStyle: { color: '#fff' } },
-    };
-    myChart.setOption(option);
-    window.addEventListener('resize', () => myChart.resize());
-  };
-
-  // 输送线任务
-  const getMaterialTrayCountFun = () => {
-    // getMaterialTrayCount().then(res => {
-    //   if (res.status === 200) {
-    //     GetMaterialTrayCountEchart();
-    //   }
-    // })
-    GetMaterialTrayCountEchart();
-  };
-  const GetMaterialTrayCountEchart = () => {
-    const myChart = registerChart(echarts.init(document.getElementById('materialNum')));
-    const option = {
-      legend: {},
-      tooltip: {},
-      dataset: {
-        source: [
-          ['product', '入库', '出库'],
-          ['注塑', 43.3, 85.8],
-          ['上件', 72.4, 53.9],
-          ['下件', 62.4, 73.9],
-          ['组装', 42.4, 63.9],
-        ],
+        label: {
+          show: true,
+          position: 'top',
+          color: '#fff',
+        },
       },
-      xAxis: { type: 'category', axisLabel: { color: '#fff' } },
-      yAxis: { axisLabel: { color: '#fff' } },
-      series: [
-        {
-          type: 'bar',
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#4b9aff' },
-              { offset: 1, color: '#188df0' },
-            ]),
-          },
-          label: {
-            show: true,
-            position: 'top',
-            color: '#fff',
-          },
-        },
-        {
-          type: 'bar',
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#00ffff' },
-              { offset: 1, color: '#00a8a8' },
-            ]),
-          },
-          label: {
-            show: true,
-            position: 'top',
-            color: '#fff',
-          },
-        },
-      ],
-      legend: { left: '30%', bottom: '5%', textStyle: { color: '#fff' } },
-    };
-    myChart.setOption(option);
-    window.addEventListener('resize', () => myChart.resize());
-  };
-
-  // 库位利用率
-  const homePageLocationsStatistics = ref([
-    { value: 0, name: '占用', key: 'InStockCount' },
-    { value: 0, name: '空货位', key: 'EmptyCount' },
-    { value: 0, name: '预留入库', key: 'PreInCount' },
-    { value: 0, name: '预留出库', key: 'PreOutCount' },
-    { value: 0, name: '禁用', key: 'DisCount' },
-  ]);
-  const getHomePageLocationsStatisticsFun = () => {
-    // getHomePageLocationsStatistics().then(res => {
-    //   if (res.status === 200) {
-    //     const data = res.data;
-    //     homePageLocationsStatistics.value = homePageLocationsStatistics.value.map(item => ({
-    //       ...item, value: Number(data[item.key]) || 0
-    //     }));
-    //     GetHomePageLocationsStatisticsEchart();
-    //   }
-    // });
-    GetHomePageLocationsStatisticsEchart();
-  };
-  const GetHomePageLocationsStatisticsEchart = () => {
-    const myChart = registerChart(echarts.init(document.getElementById('locationNum')));
-    const option = {
-      color: ['#2174FF', '#07A872', '#F6D91E', '#F5787B', '#000'],
-      tooltip: { trigger: 'item' },
-      legend: { orient: 'vertical', left: '-1%', top: '0%', textStyle: { color: '#fff' } },
-      series: [
-        {
-          type: 'pie',
-          radius: ['40%', '60%'],
-          center: ['50%', '60%'],
-          data: homePageLocationsStatistics.value,
-          label: { show: true, color: '#fff', formatter: '{b}: {c}' },
-        },
-      ],
-    };
-    myChart.setOption(option);
-    window.addEventListener('resize', () => myChart.resize());
-  };
-
-  // 关键指标
-  const kpiList = [
-    {
-      id: 1,
-      name: '当前库存总数',
-      value: '12,845',
-      ico: k1,
-    },
-    {
-      id: 2,
-      name: '今日入库数量',
-      value: '600',
-      ico: k2,
-    },
-    {
-      id: 3,
-      name: '今日出库数量',
-      value: '1,032',
-      ico: k3,
-    },
-  ];
-
-  // 设备实时状态
-  const equipmentList = [
-    {
-      id: 1,
-      name: '堆垛机-1号',
-      status: '运行中',
-    },
-    {
-      id: 2,
-      name: '堆垛机-2号',
-      status: '运行中',
-    },
-    {
-      id: 3,
-      name: '堆垛机-3号',
-      status: '异常',
-    },
-    {
-      id: 4,
-      name: '堆垛机-4号',
-      status: '运行中',
-    },
-  ];
-
-  //储位分布图
-  const storageGroups = [
-    [
-      [2, 1, 1, 1, 2],
-      [0, 2, 1, 1, 1],
-      [1, 0, 1, 2, 0],
-      [2, 3, 2, 2, 2],
-      [1, 0, 1, 3, 0],
-      [0, 1, 2, 1, 0],
-      [0, 0, 0, 1, 0],
-      [0, 0, 0, 1, 0],
     ],
-    [
-      [2, 1, 1, 1, 0, 0],
-      [1, 2, 1, 1, 1, 3],
-      [1, 1, 2, 1, 1, 1],
-      [0, 1, 1, 2, 1, 1],
-      [1, 0, 2, 1, 2, 1],
-      [2, 0, 1, 0, 1, 1],
-      [0, 1, 2, 1, 2, 1],
-      [0, 0, 1, 0, 1, 0],
-      [0, 0, 0, 1, 0, 0],
-    ],
-    [
-      [1, 2, 1, 0],
-      [1, 1, 2, 0],
-      [3, 1, 1, 2],
-      [0, 3, 1, 1],
-      [0, 0, 0, 1],
-      [0, 0, 1, 0],
-    ],
-    [
-      [1, 0, 0, 0, 0, 0],
-      [3, 1, 0, 0, 0, 0],
-      [2, 3, 0, 0, 0, 0],
-      [3, 2, 1, 0, 0, 0],
-      [1, 1, 2, 1, 0, 0],
-      [1, 1, 1, 2, 1, 1],
-      [0, 1, 1, 1, 2, 1],
-      [2, 1, 1, 1, 2, 0],
-      [2, 2, 1, 1, 1, 1],
-    ],
-  ];
-  const getClass = (type) => {
-    if (type === 1) return 'has';
-    if (type === 2) return 'empty';
-    if (type === 3) return 'lock';
-    return 'hidden';
+    legend: { left: '30%', bottom: '5%', textStyle: { color: '#fff' } },
   };
+  myChart.setOption(option);
+  window.addEventListener('resize', () => myChart.resize());
+};
 
-  // 实时数据连接对象
-  let connection = null;
-  function startSignalR() {
-    // 1. 创建连接
-    connection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:9291/chatHub') // 后端地址
-      .build();
+// 库位利用率
+const homePageLocationsStatistics = ref([
+  { value: 0, name: '占用', key: 'InStockCount' },
+  { value: 0, name: '空货位', key: 'EmptyCount' },
+  { value: 0, name: '预留入库', key: 'PreInCount' },
+  { value: 0, name: '预留出库', key: 'PreOutCount' },
+  { value: 0, name: '禁用', key: 'DisCount' },
+]);
+const getHomePageLocationsStatisticsFun = () => {
+  // getHomePageLocationsStatistics().then(res => {
+  //   if (res.status === 200) {
+  //     const data = res.data;
+  //     homePageLocationsStatistics.value = homePageLocationsStatistics.value.map(item => ({
+  //       ...item, value: Number(data[item.key]) || 0
+  //     }));
+  //     GetHomePageLocationsStatisticsEchart();
+  //   }
+  // });
+  GetHomePageLocationsStatisticsEchart();
+};
+const GetHomePageLocationsStatisticsEchart = () => {
+  const myChart = registerChart(echarts.init(document.getElementById('locationNum')));
+  const option = {
+    color: ['#2174FF', '#07A872', '#F6D91E', '#F5787B', '#000'],
+    tooltip: { trigger: 'item' },
+    legend: { orient: 'vertical', left: '-1%', top: '0%', textStyle: { color: '#fff' } },
+    series: [
+      {
+        type: 'pie',
+        radius: ['40%', '60%'],
+        center: ['50%', '60%'],
+        data: homePageLocationsStatistics.value,
+        label: { show: true, color: '#fff', formatter: '{b}: {c}' },
+      },
+    ],
+  };
+  myChart.setOption(option);
+  window.addEventListener('resize', () => myChart.resize());
+};
 
-    // 2. 监听后端推送的方法名（后端会告诉你方法名）
-    connection.on('ReceiveRealData', (data) => {
-      // data 是后端推来的实时数据
-      console.log('实时数据', data);
+// 关键指标
+const kpiList = [
+  {
+    id: 1,
+    name: '当前库存总数',
+    value: '12,845',
+    ico: k1,
+  },
+  {
+    id: 2,
+    name: '今日入库数量',
+    value: '600',
+    ico: k2,
+  },
+  {
+    id: 3,
+    name: '今日出库数量',
+    value: '1,032',
+    ico: k3,
+  },
+];
+
+// 设备实时状态
+const equipmentList = [
+  {
+    id: 1,
+    name: '堆垛机-1号',
+    status: '运行中',
+  },
+  {
+    id: 2,
+    name: '堆垛机-2号',
+    status: '运行中',
+  },
+  {
+    id: 3,
+    name: '堆垛机-3号',
+    status: '异常',
+  },
+  {
+    id: 4,
+    name: '堆垛机-4号',
+    status: '运行中',
+  },
+];
+
+//储位分布图
+const storageGroups = [
+  [
+    [2, 1, 1, 1, 2],
+    [0, 2, 1, 1, 1],
+    [1, 0, 1, 2, 0],
+    [2, 3, 2, 2, 2],
+    [1, 0, 1, 3, 0],
+    [0, 1, 2, 1, 0],
+    [0, 0, 0, 1, 0],
+    [0, 0, 0, 1, 0],
+  ],
+  [
+    [2, 1, 1, 1, 0, 0],
+    [1, 2, 1, 1, 1, 3],
+    [1, 1, 2, 1, 1, 1],
+    [0, 1, 1, 2, 1, 1],
+    [1, 0, 2, 1, 2, 1],
+    [2, 0, 1, 0, 1, 1],
+    [0, 1, 2, 1, 2, 1],
+    [0, 0, 1, 0, 1, 0],
+    [0, 0, 0, 1, 0, 0],
+  ],
+  [
+    [1, 2, 1, 0],
+    [1, 1, 2, 0],
+    [3, 1, 1, 2],
+    [0, 3, 1, 1],
+    [0, 0, 0, 1],
+    [0, 0, 1, 0],
+  ],
+  [
+    [1, 0, 0, 0, 0, 0],
+    [3, 1, 0, 0, 0, 0],
+    [2, 3, 0, 0, 0, 0],
+    [3, 2, 1, 0, 0, 0],
+    [1, 1, 2, 1, 0, 0],
+    [1, 1, 1, 2, 1, 1],
+    [0, 1, 1, 1, 2, 1],
+    [2, 1, 1, 1, 2, 0],
+    [2, 2, 1, 1, 1, 1],
+  ],
+];
+const getClass = (type) => {
+  if (type === 1) return 'has';
+  if (type === 2) return 'empty';
+  if (type === 3) return 'lock';
+  return 'hidden';
+};
+
+// 实时数据连接对象
+let connection = null;
+function startSignalR() {
+  // 1. 创建连接
+  connection = new signalR.HubConnectionBuilder()
+    .withUrl('http://localhost:9291/chatHub') // 后端地址
+    .build();
+
+  // 2. 监听后端推送的方法名（后端会告诉你方法名）
+  connection.on('ReceiveRealData', (data) => {
+    // data 是后端推来的实时数据
+    console.log('实时数据', data);
+  });
+
+  // 3. 启动连接
+  connection
+    .start()
+    .then(() => {
+      initData();
+    })
+    .catch((err) => {
+      // console.error('连接失败', err);
+      setTimeout(startSignalR, 3000); // 自动重连
     });
 
-    // 3. 启动连接
-    connection
-      .start()
-      .then(() => {
-        initData();
-      })
-      .catch((err) => {
-        // console.error('连接失败', err);
-        setTimeout(startSignalR, 3000); // 自动重连
-      });
-
-    // 4. 断开重连
-    connection.onclose(() => {
-      console.log('❌ 断开，正在重连...');
-      setTimeout(startSignalR, 3000);
-    });
-  }
-  function stopSignalR() {
-    if (connection) connection.stop();
-  }
-
-  // 生命周期
-  onMounted(() => {
-    // startSignalR();
-    setScale();
-    window.addEventListener('resize', setScale);
-    initData();
+  // 4. 断开重连
+  connection.onclose(() => {
+    console.log('❌ 断开，正在重连...');
+    setTimeout(startSignalR, 3000);
   });
-  onBeforeUnmount(() => {
-    stopSignalR();
-  });
+}
+function stopSignalR() {
+  if (connection) connection.stop();
+}
+
+// 生命周期
+onMounted(() => {
+  // startSignalR();
+  setScale();
+  window.addEventListener('resize', setScale);
+  initData();
+});
+onBeforeUnmount(() => {
+  stopSignalR();
+});
 </script>
 
 <style scoped lang="less">
-  @import './index.less';
+@import './index.less';
 </style>
