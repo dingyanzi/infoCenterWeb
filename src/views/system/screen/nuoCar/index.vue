@@ -54,37 +54,37 @@
               <div class="group">
                 <div class="grid">
                   <div v-for="(row, rowIndex) in storageGroups[0]" :key="rowIndex" class="row">
-                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
+                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getCellClass(0, rowIndex, colIndex, item)"></div>
                   </div>
                 </div>
               </div>
               <div class="stacker-track-h">
-                <span class="line" :style="{ left: getStackerLeft(stackerPositions[0]) }">堆垛机</span>
+                <span class="line" :style="{ left: getStackerLeft(stackerTargets[0].col) }">堆垛机</span>
               </div>
               <div class="group">
                 <div class="grid">
                   <div v-for="(row, rowIndex) in storageGroups[1]" :key="rowIndex" class="row">
-                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
+                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getCellClass(1, rowIndex, colIndex, item)"></div>
                   </div>
                 </div>
               </div>
               <div class="stacker-track-h">
-                <span class="line" :style="{ left: getStackerLeft(stackerPositions[1]) }">堆垛机</span>
+                <span class="line" :style="{ left: getStackerLeft(stackerTargets[1].col) }">堆垛机</span>
               </div>
               <div class="group">
                 <div class="grid">
                   <div v-for="(row, rowIndex) in storageGroups[2]" :key="rowIndex" class="row">
-                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
+                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getCellClass(2, rowIndex, colIndex, item)"></div>
                   </div>
                 </div>
               </div>
               <div class="stacker-track-h">
-                <span class="line" :style="{ left: getStackerLeft(stackerPositions[2]) }">堆垛机</span>
+                <span class="line" :style="{ left: getStackerLeft(stackerTargets[2].col) }">堆垛机</span>
               </div>
               <div class="group">
                 <div class="grid">
                   <div v-for="(row, rowIndex) in storageGroups[3]" :key="rowIndex" class="row">
-                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
+                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getCellClass(3, rowIndex, colIndex, item)"></div>
                   </div>
                 </div>
               </div>
@@ -410,16 +410,33 @@ const equipmentList = [
   },
 ];
 
-// 堆垛机位置（对应每个堆垛机轨道的当前列索引）
-const stackerPositions = ref([20]);
+// 堆垛机目标（3个堆垛机，每个对应 { group, row, col }）
+const stackerTargets = ref([
+  { group: 0, row: 0, col: 20 },
+  { group: 1, row: 0, col: 10 },
+  { group: 2, row: 0, col: 5 },
+]);
 
-// 模拟接口：随机移动堆垛机位置
+// group 与堆垛机映射（比如第一个属性0代表第一个库区，第二个属性0代表第一个堆垛机）
+const groupToStackerMap = { 0: 0, 1: 0, 2: 1, 3: 2 };
+
+// 根据 group 更新对应堆垛机的目标位置
+const updateStackerByGroup = (group, row, col) => {
+  console.log('updateStackerByGroup', group, row, col);
+  const stackerIndex = groupToStackerMap[group];
+  if (stackerIndex !== undefined) {
+    stackerTargets.value[stackerIndex] = { group, row, col };
+  }
+};
+
+// 模拟接口：随机驱动堆垛机
 let stackerTimer = null;
 const startStackerSimulation = () => {
   stackerTimer = setInterval(() => {
-    stackerPositions.value = stackerPositions.value.map(() =>
-      Math.floor(Math.random() * 30)
-    );
+    const group = Math.floor(Math.random() * 4);
+    const row = Math.floor(Math.random() * 6);
+    const col = Math.floor(Math.random() * 30);
+    updateStackerByGroup(group, row, col);
   }, 3000);
 };
 // 停止模拟
@@ -432,39 +449,54 @@ const getStackerLeft = (colIndex) => {
   return `${((colIndex + 0.5) / 30) * 100}%`;
 };
 
+// 判断某个 cell 是否被堆垛机指向（用于高亮）
+const isStackerTarget = (groupIndex, rowIndex, colIndex) => {
+  return stackerTargets.value.some(
+    (t) => t.group === groupIndex && t.row === rowIndex && t.col === colIndex
+  );
+};
+
+// 获取 cell 的 class（含 target 高亮类型）
+const getCellClass = (groupIndex, rowIndex, colIndex, item) => {
+  const base = getClass(item);
+  const isTarget = isStackerTarget(groupIndex, rowIndex, colIndex);
+  if (isTarget) return [base, `${base}-target`];
+  return [base];
+};
+
 //储位分布图
 const storageGroups = [
   [
-    [2,1,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0],
-    [0,2,1,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,0,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0,1],
-    [2,3,2,2,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0],
-    [1,0,1,3,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0,1],
-    [0,1,2,1,0,2,1,0,1,2,1,0,1,2,1,0,1,2,1,0,1,2,1,0,1,2,1,0,1,2]
+    [2,1,1,1,2,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1,2],
+    [2,2,1,1,1,2,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1],
+    [1,2,1,2,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1,2,1],
+    [2,3,2,2,2,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1,2],
+    [1,2,1,3,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1,2,1],
+    [2,1,2,1,2,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2]
   ],
   [
-    [2,1,1,1,0,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1],
-    [1,2,1,1,1,3,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,1,2,1,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2],
-    [0,1,1,2,1,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,0,2,1,2,1,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2],
-    [2,0,1,0,1,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1]
+    [2,1,1,1,2,2,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1],
+    [1,2,1,1,1,3,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1],
+    [1,1,2,1,1,1,2,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2],
+    [2,1,1,2,1,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1],
+    [1,2,2,1,2,1,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2],
+    [2,2,1,2,1,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1]
   ],
   [
-    [1,2,1,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,1,2,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2],
-    [3,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0,1],
-    [0,3,1,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [0,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [0,0,1,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2]
+    [1,2,1,2,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1],
+    [1,1,2,2,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2],
+    [3,1,1,2,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1,2,1],
+    [2,3,1,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1],
+    [2,2,2,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2,1],
+    [2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1,2]
   ],
   [
-    [1,0,0,0,0,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1],
-    [3,1,0,0,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0],
-    [2,3,0,0,0,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1],
-    [3,2,1,0,0,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1],
-    [1,1,2,1,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0],
-    [1,1,1,2,1,1,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1]
+    [1,2,2,2,2,2,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1],
+    [3,1,2,2,2,2,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2],
+    [2,3,2,2,2,2,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1],
+    [3,2,1,2,2,2,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1],
+    [1,1,2,1,2,2,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2],
+    [1,1,1,2,1,1,2,1,2,1,2,1,2,1,2,2,1,1,2,1,2,1,2,1,1,2,2,1,2,1]
   ],
 ];
 const getClass = (type) => {
@@ -515,7 +547,7 @@ onMounted(() => {
   setScale();
   window.addEventListener('resize', setScale);
   initData();
-  startStackerSimulation();
+  // startStackerSimulation();
 });
 onBeforeUnmount(() => {
   stopSignalR();
