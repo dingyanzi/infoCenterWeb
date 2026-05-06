@@ -59,7 +59,7 @@
                 </div>
               </div>
               <div class="stacker-track-h">
-                <span>堆垛机</span>
+                <span class="line" :style="{ left: getStackerLeft(stackerPositions[0]) }">堆垛机</span>
               </div>
               <div class="group">
                 <div class="grid">
@@ -69,7 +69,7 @@
                 </div>
               </div>
               <div class="stacker-track-h">
-                <span>堆垛机</span>
+                <span class="line" :style="{ left: getStackerLeft(stackerPositions[1]) }">堆垛机</span>
               </div>
               <div class="group">
                 <div class="grid">
@@ -79,7 +79,7 @@
                 </div>
               </div>
               <div class="stacker-track-h">
-                <span>堆垛机</span>
+                <span class="line" :style="{ left: getStackerLeft(stackerPositions[2]) }">堆垛机</span>
               </div>
               <div class="group">
                 <div class="grid">
@@ -410,6 +410,28 @@ const equipmentList = [
   },
 ];
 
+// 堆垛机位置（对应每个堆垛机轨道的当前列索引）
+const stackerPositions = ref([20]);
+
+// 模拟接口：随机移动堆垛机位置
+let stackerTimer = null;
+const startStackerSimulation = () => {
+  stackerTimer = setInterval(() => {
+    stackerPositions.value = stackerPositions.value.map(() =>
+      Math.floor(Math.random() * 30)
+    );
+  }, 3000);
+};
+// 停止模拟
+const stopStackerSimulation = () => {
+  if (stackerTimer) clearInterval(stackerTimer);
+};
+
+// 计算堆垛机 left 位置（居中对应该列）
+const getStackerLeft = (colIndex) => {
+  return `${((colIndex + 0.5) / 30) * 100}%`;
+};
+
 //储位分布图
 const storageGroups = [
   [
@@ -493,9 +515,11 @@ onMounted(() => {
   setScale();
   window.addEventListener('resize', setScale);
   initData();
+  startStackerSimulation();
 });
 onBeforeUnmount(() => {
   stopSignalR();
+  stopStackerSimulation();
 });
 </script>
 
