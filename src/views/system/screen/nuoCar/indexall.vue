@@ -45,48 +45,94 @@
       <!-- 中间内容 -->
       <div class="centerContent">
         <!-- 全景（库区分布图） -->
+        <div class="taskView">
+          <img class="titImg" :src="titBg2Img" alt="" />
+          <div class="title">全景（库区分布图）</div>
+          <!-- 主体区域 -->
+          <div class="storage-layout">
+            <!-- 左通道 -->
+            <div class="side-channel">
+              <span>通道</span>
+            </div>
+            <!-- 第一个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
+            <!-- 堆垛机1 -->
+            <div class="stacker-wrapper">
+              <!-- 从上到下完整通道 -->
+              <div class="stacker-track"></div>
+
+              <!-- 中间堆垛机 -->
+              <div class="stacker-machine">
+                <div class="machine-core"></div>
+              </div>
+            </div>
+            <!-- 第二个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
+            <!-- 堆垛机2 -->
+            <div class="stacker-wrapper">
+              <!-- 从上到下完整通道 -->
+              <div class="stacker-track"></div>
+
+              <!-- 中间堆垛机 -->
+              <div class="stacker-machine">
+                <div class="machine-core"></div>
+              </div>
+            </div>
+            <!-- 第三个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
+            <!-- 堆垛机3 -->
+            <div class="stacker-wrapper">
+              <!-- 从上到下完整通道 -->
+              <div class="stacker-track"></div>
+
+              <!-- 中间堆垛机 -->
+              <div class="stacker-machine">
+                <div class="machine-core"></div>
+              </div>
+            </div>
+            <!-- 第四个库区 -->
+            <div class="storage-area">
+              <div class="area top-area">喷漆件区域</div>
+              <div class="area middle-area">公共区域</div>
+              <div class="area bottom-area">毛坯件区域</div>
+            </div>
+            <!-- 右通道 -->
+            <div class="side-channel">
+              <span>通道</span>
+            </div>
+          </div>
+
+          <!-- 底部通道 -->
+          <div class="bottom-channel">
+            <span>通道</span>
+          </div>
+        </div>
         <!-- 储位分布图 -->
         <div class="outInView">
           <img class="titImg" :src="titBg2Img" alt="" />
-          <div class="title">全景（库区分布图）</div>
+          <div class="title">储位分布图</div>
           <div class="storage-map">
             <div class="warehouse-wrap">
-              <div class="group">
+              <div v-for="(group, groupIndex) in storageGroups" :key="groupIndex" class="group">
                 <div class="grid">
-                  <div v-for="(row, rowIndex) in storageGroups[0]" :key="rowIndex" class="row">
+                  <div v-for="(row, rowIndex) in group" :key="rowIndex" class="row">
                     <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
                   </div>
                 </div>
-              </div>
-              <div class="stacker-track-h">
-                <span>堆垛机</span>
-              </div>
-              <div class="group">
-                <div class="grid">
-                  <div v-for="(row, rowIndex) in storageGroups[1]" :key="rowIndex" class="row">
-                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="stacker-track-h">
-                <span>堆垛机</span>
-              </div>
-              <div class="group">
-                <div class="grid">
-                  <div v-for="(row, rowIndex) in storageGroups[2]" :key="rowIndex" class="row">
-                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="stacker-track-h">
-                <span>堆垛机</span>
-              </div>
-              <div class="group">
-                <div class="grid">
-                  <div v-for="(row, rowIndex) in storageGroups[3]" :key="rowIndex" class="row">
-                    <div v-for="(item, colIndex) in row" :key="colIndex" class="cell" :class="getClass(item)"></div>
-                  </div>
-                </div>
+
+                <div v-if="groupIndex !== storageGroups.length - 1" class="divider"></div>
               </div>
             </div>
             <div class="legend">
@@ -413,36 +459,44 @@ const equipmentList = [
 //储位分布图
 const storageGroups = [
   [
-    [2,1,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0],
-    [0,2,1,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,0,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0,1],
-    [2,3,2,2,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0],
-    [1,0,1,3,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0,1],
-    [0,1,2,1,0,2,1,0,1,2,1,0,1,2,1,0,1,2,1,0,1,2,1,0,1,2,1,0,1,2]
+    [2, 1, 1, 1, 2],
+    [0, 2, 1, 1, 1],
+    [1, 0, 1, 2, 0],
+    [2, 3, 2, 2, 2],
+    [1, 0, 1, 3, 0],
+    [0, 1, 2, 1, 0],
+    [0, 0, 0, 1, 0],
+    [0, 0, 0, 1, 0],
   ],
   [
-    [2,1,1,1,0,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1],
-    [1,2,1,1,1,3,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,1,2,1,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2],
-    [0,1,1,2,1,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,0,2,1,2,1,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2],
-    [2,0,1,0,1,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1]
+    [2, 1, 1, 1, 0, 0],
+    [1, 2, 1, 1, 1, 3],
+    [1, 1, 2, 1, 1, 1],
+    [0, 1, 1, 2, 1, 1],
+    [1, 0, 2, 1, 2, 1],
+    [2, 0, 1, 0, 1, 1],
+    [0, 1, 2, 1, 2, 1],
+    [0, 0, 1, 0, 1, 0],
+    [0, 0, 0, 1, 0, 0],
   ],
   [
-    [1,2,1,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [1,1,2,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2],
-    [3,1,1,2,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1,0,1],
-    [0,3,1,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [0,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2,1],
-    [0,0,1,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1,2]
+    [1, 2, 1, 0],
+    [1, 1, 2, 0],
+    [3, 1, 1, 2],
+    [0, 3, 1, 1],
+    [0, 0, 0, 1],
+    [0, 0, 1, 0],
   ],
   [
-    [1,0,0,0,0,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1],
-    [3,1,0,0,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0],
-    [2,3,0,0,0,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1],
-    [3,2,1,0,0,0,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0,1],
-    [1,1,2,1,0,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1,0],
-    [1,1,1,2,1,1,0,1,2,1,0,1,2,1,0,1,2,0,1,1,2,1,0,1,2,1,1,0,2,1]
+    [1, 0, 0, 0, 0, 0],
+    [3, 1, 0, 0, 0, 0],
+    [2, 3, 0, 0, 0, 0],
+    [3, 2, 1, 0, 0, 0],
+    [1, 1, 2, 1, 0, 0],
+    [1, 1, 1, 2, 1, 1],
+    [0, 1, 1, 1, 2, 1],
+    [2, 1, 1, 1, 2, 0],
+    [2, 2, 1, 1, 1, 1],
   ],
 ];
 const getClass = (type) => {
