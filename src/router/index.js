@@ -25,7 +25,7 @@ router.beforeEach(async (to, from, next) => {
   nProgress.start();
 
   // 公共页面，任何时候都可以跳转
-  if (to.path === PAGE_PATH_404 || to.path === '/screen/car') {
+  if (to.path === PAGE_PATH_404 || to.path === '/screen/car' || to.path === '/Android/fieldWork') {
     next();
     return;
   }

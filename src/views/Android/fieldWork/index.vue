@@ -101,8 +101,16 @@
             <div class="person-row address-row">
               <span class="person-field">地址：{{ person.address }}</span>
             </div>
-            <div class="person-row">
+            <div class="person-row phone-row">
               <span class="person-field">电话：{{ person.phone }}</span>
+              <span
+                v-if="person.phone && person.phone !== '-'"
+                class="call-btn"
+                title="拨打电话"
+                @click="callPhone(person.phone)"
+              >
+                <PhoneOutlined />
+              </span>
             </div>
           </div>
         </div>
@@ -123,6 +131,7 @@ import {
   UserOutlined,
   CaretDownOutlined,
   ReloadOutlined,
+  PhoneOutlined,
 } from '@ant-design/icons-vue';
 import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
@@ -256,6 +265,12 @@ const mapPerson = (item, index) => {
     address: item.PositionDetail || item.AttendenceRemark || '-',
     phone: item.Phone || '-',
   };
+};
+
+// 拨打电话
+const callPhone = (phone) => {
+  if (!phone || phone === '-') return;
+  window.location.href = `tel:${phone}`;
 };
 
 const loadPersons = async (addressName) => {
@@ -679,6 +694,7 @@ const handleResize = () => {
 
 .person-row {
   display: flex;
+  align-items: center;
   gap: 14px;
   font-size: 14px;
   color: #6b7280;
@@ -693,6 +709,35 @@ const handleResize = () => {
       word-break: break-all;
       line-height: 1.5;
       max-width: 100%;
+    }
+  }
+
+  // 拨打电话图标按钮
+  &.phone-row {
+    gap: 8px;
+
+    .call-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(74, 141, 255, 0.12);
+      color: #4a8dff;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #4a8dff;
+        color: #fff;
+      }
+
+      &:active {
+        transform: scale(0.9);
+      }
     }
   }
 }
