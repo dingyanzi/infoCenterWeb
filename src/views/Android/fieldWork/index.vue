@@ -5,40 +5,38 @@
 -->
 <template>
   <div class="field-work-page">
-    <!-- 蓝色渐变 header 区（包含状态栏 + 标题 + 浮动的统计卡片） -->
+    <!-- 蓝色渐变 header 区 -->
     <div class="header-wrap">
       <!-- 顶部标题 -->
       <div class="page-header">
-        <div class="page-title">锋馥外勤调度中心</div>
+        <div class="page-title">锋馥外勤调度指挥中心</div>
         <div class="back-btn placeholder"></div>
       </div>
+    </div>
 
-      <!-- 浮在 header 下方的统计卡片 -->
-      <div class="stats-cards">
+    <!-- 骑跨在蓝白交界处的统计卡片 -->
+    <div class="stats-cards">
         <div class="stat-card">
           <div class="stat-label">
-            <AimOutlined class="label-icon" />
             <span>当前外勤总人数</span>
           </div>
           <div class="stat-value">
-            <SettingOutlined class="value-icon" />
+            <TeamOutlined class="value-icon" />
             <span class="number">{{ stats.total }}</span>
             <span class="unit">人</span>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-label">
-            <AimOutlined class="label-icon" />
             <span>非大陆外勤人数</span>
           </div>
           <div class="stat-value">
-            <MessageOutlined class="value-icon" />
+            <GlobalOutlined class="value-icon" />
             <span class="number">{{ stats.nonMainland }}</span>
             <span class="unit">人</span>
           </div>
         </div>
       </div>
-    </div>
 
     <!-- 筛选下拉 -->
     <div class="filter-row">
@@ -68,29 +66,18 @@
           <CaretDownOutlined class="caret-icon" />
         </template>
       </a-select>
+      <button class="reset-btn" title="重置筛选，恢复全国数据" @click="resetFilter">
+        <ReloadOutlined />
+      </button>
     </div>
 
     <!-- 区域分布占比 饼图 -->
     <div class="card pie-card">
       <div class="card-title">
         区域分布占比
-        <span class="title-hint">（点击扇区可务选）</span>
       </div>
       <div class="pie-content">
         <div ref="pieChartRef" class="pie-chart"></div>
-        <div class="pie-legend">
-          <div
-            class="legend-item"
-            v-for="(item, index) in pieData"
-            :key="item.name"
-            :class="{ active: activeLegend === index }"
-            @click="onLegendClick(index)"
-          >
-            <span class="legend-dot" :style="{ background: item.color }"></span>
-            <span class="legend-name">{{ item.name }}</span>
-            <span class="legend-value">{{ item.value }}人</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -110,14 +97,15 @@
               <span class="person-field">部门：{{ person.department }}</span>
               <span class="person-field">职位：{{ person.position }}</span>
             </div>
+            <div class="person-row address-row">
+              <span class="person-field">地址：{{ person.address }}</span>
+            </div>
             <div class="person-row">
-              <span class="person-field ellipsis">地址：{{ person.address }}</span>
               <span class="person-field">电话：{{ person.phone }}</span>
             </div>
           </div>
         </div>
         <div v-if="filteredPersonList.length === 0" class="empty-tip">暂无数据</div>
-        <div v-else class="list-footer">... (可无限滚动查看更多)</div>
       </div>
     </div>
   </div>
@@ -126,12 +114,11 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import {
-  LeftOutlined,
-  AimOutlined,
-  SettingOutlined,
-  MessageOutlined,
+  TeamOutlined,
+  GlobalOutlined,
   UserOutlined,
   CaretDownOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons-vue';
 import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
@@ -195,13 +182,14 @@ const cityOptions = computed(() => (filter.province ? cityMap[filter.province] |
 // 蓝色三色阶（深→中→浅）
 const BLUE_PALETTE = ['#1F5BFF', '#6FA3FF', '#B8D4FF', '#D9E6FF', '#EAF2FF'];
 
-const pieData = ref([
+// 全国默认分布数据
+const DEFAULT_PIE_DATA = () => [
   { name: '浙江', value: 10, color: BLUE_PALETTE[0] },
   { name: '江苏', value: 10, color: BLUE_PALETTE[1] },
   { name: '安徽', value: 5, color: BLUE_PALETTE[2] },
-]);
+];
 
-const activeLegend = ref(-1);
+const pieData = ref(DEFAULT_PIE_DATA());
 
 const renderPieChart = () => {
   if (!pieChartRef.value) return;
@@ -211,12 +199,27 @@ const renderPieChart = () => {
     series: [
       {
         type: 'pie',
-        radius: ['58%', '78%'],
-        center: ['50%', '52%'],
-        avoidLabelOverlap: false,
+        radius: ['42%', '62%'],
+        center: ['50%', '50%'],
+        avoidLabelOverlap: true,
         startAngle: 90,
-        label: { show: false },
-        labelLine: { show: false },
+        // 引出线 + 文字标注
+        label: {
+          show: true,
+          formatter: '{b}\n{c}人',
+          color: '#1f2937',
+          fontSize: 12,
+          lineHeight: 16,
+        },
+        labelLine: {
+          show: true,
+          length: 10,
+          length2: 6,
+          lineStyle: {
+            color: '#9fb4d8',
+            width: 1,
+          },
+        },
         itemStyle: {
           borderColor: '#fff',
           borderWidth: 2,
@@ -233,22 +236,13 @@ const renderPieChart = () => {
       },
     ],
   });
-  pieChart.on('click', (params) => {
-    const idx = pieData.value.findIndex((d) => d.name === params.name);
-    if (idx >= 0) onLegendClick(idx);
-  });
-};
-
-const onLegendClick = (index) => {
-  activeLegend.value = activeLegend.value === index ? -1 : index;
-  // 这里可以扩展：点击扇区时联动过滤列表
 };
 
 const pieChartRef = ref(null);
 let pieChart = null;
 
 /* ---------------- 人员列表 mock 数据 ---------------- */
-const avatarColors = ['#4A90FF', '#FF8A4A', '#52C41A', '#722ED1', '#13C2C2', '#F5222D', '#FAAD14'];
+const avatarColors = ['#4A90FF', '#FF8A4A',];
 
 const personList = ref([
   { id: 1, name: '张三', department: '运营部', position: '外勤主管', address: '余杭专...', phone: '138****1234', province: 'zhejiang', city: 'hangzhou' },
@@ -286,11 +280,7 @@ const onFilterChange = () => {
   // 如果没有筛选或者筛了但没数据，回退到全国
   let nextData = Object.values(groups);
   if (nextData.length === 0) {
-    nextData = [
-      { name: '浙江', value: 10, color: BLUE_PALETTE[0] },
-      { name: '江苏', value: 10, color: BLUE_PALETTE[1] },
-      { name: '安徽', value: 5, color: BLUE_PALETTE[2] },
-    ];
+    nextData = DEFAULT_PIE_DATA();
   } else {
     nextData = nextData
       .sort((a, b) => b.value - a.value)
@@ -298,7 +288,14 @@ const onFilterChange = () => {
       .map((d, i) => ({ ...d, color: BLUE_PALETTE[i] || BLUE_PALETTE[BLUE_PALETTE.length - 1] }));
   }
   pieData.value = nextData;
-  activeLegend.value = -1;
+  nextTick(() => renderPieChart());
+};
+
+/* ---------------- 重置筛选：恢复全国数据 ---------------- */
+const resetFilter = () => {
+  filter.province = undefined;
+  filter.city = undefined;
+  pieData.value = DEFAULT_PIE_DATA();
   nextTick(() => renderPieChart());
 };
 
@@ -344,79 +341,6 @@ const handleResize = () => {
   color: #fff;
 }
 
-.status-bar {
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 22px;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-
-  .status-icons {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .icon-signal,
-  .icon-wifi,
-  .icon-battery {
-    display: inline-block;
-  }
-  .icon-signal {
-    width: 18px;
-    height: 12px;
-    position: relative;
-
-    &::before {
-      content: '▮▮▮';
-      font-size: 11px;
-      letter-spacing: 1px;
-      color: #fff;
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-    }
-  }
-  .icon-wifi {
-    font-size: 13px;
-    color: #fff;
-    display: inline-flex;
-    align-items: center;
-
-    &::before {
-      content: '◗';
-    }
-  }
-  .icon-battery {
-    width: 24px;
-    height: 11px;
-    border: 1px solid #fff;
-    border-radius: 2px;
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 1px 2px 1px 1px;
-      background: #fff;
-      border-radius: 1px;
-    }
-    &::after {
-      content: '';
-      position: absolute;
-      right: -3px;
-      top: 3px;
-      width: 2px;
-      height: 5px;
-      background: #fff;
-      border-radius: 0 1px 1px 0;
-    }
-  }
-}
 
 .page-header {
   height: 48px;
@@ -451,17 +375,18 @@ const handleResize = () => {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 17px;
+    font-size: 20px;
     font-weight: 600;
     letter-spacing: 1px;
     color: #fff;
   }
 }
 
-/* ============ 统计卡片（浮在 header 上） ============ */
+/* ============ 统计卡片（骑跨在蓝白交界处） ============ */
 .stats-cards {
   position: relative;
-  margin: 14px 16px 0;
+  z-index: 2;
+  margin: -35px 16px 0;
   display: flex;
   gap: 12px;
 }
@@ -478,7 +403,7 @@ const handleResize = () => {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: 14px;
     color: #4a8dff;
     font-weight: 500;
 
@@ -514,8 +439,36 @@ const handleResize = () => {
 /* ============ 筛选下拉 ============ */
 .filter-row {
   display: flex;
+  align-items: center;
   gap: 10px;
   padding: 20px 16px 14px;
+}
+
+.reset-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  color: #4a8dff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #4a8dff;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(74, 141, 255, 0.35);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
 }
 
 .filter-select {
@@ -593,86 +546,19 @@ const handleResize = () => {
 .pie-card {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%);
-
-  // 背景波浪装饰
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 70%;
-    background: radial-gradient(ellipse at 30% 90%, rgba(106, 162, 255, 0.18) 0%, transparent 60%);
-    pointer-events: none;
-  }
-  &::after {
-    content: '';
-    position: absolute;
-    left: 8%;
-    right: 8%;
-    bottom: 18%;
-    height: 60px;
-    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 60'><path d='M0 40 Q 60 10 120 30 T 240 30 T 400 30' fill='none' stroke='%236FA3FF' stroke-width='1.2' opacity='0.4'/><path d='M0 50 Q 80 25 160 45 T 320 45 T 400 45' fill='none' stroke='%23B8D4FF' stroke-width='1' opacity='0.6'/></svg>")
-      no-repeat center / 100% 100%;
-    pointer-events: none;
-  }
+  background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
 }
 
 .pie-content {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 18px;
+  justify-content: center;
   z-index: 1;
 }
 
 .pie-chart {
-  width: 160px;
-  height: 160px;
-  flex-shrink: 0;
-}
-
-.pie-legend {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 6px 4px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #1f2937;
-  cursor: pointer;
-  transition: opacity 0.2s;
-
-  .legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .legend-name {
-    flex: 1;
-    font-weight: 500;
-  }
-  .legend-value {
-    color: #6b7280;
-    font-size: 12px;
-  }
-
-  &.active {
-    opacity: 0.5;
-  }
-  &:hover {
-    .legend-name {
-      color: #4a8dff;
-    }
-  }
+  width: 100%;
+  height: 210px;
 }
 
 /* ============ 人员列表 ============ */
@@ -726,7 +612,7 @@ const handleResize = () => {
 }
 
 .person-name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #1f2937;
   margin-bottom: 4px;
@@ -735,17 +621,21 @@ const handleResize = () => {
 .person-row {
   display: flex;
   gap: 14px;
-  font-size: 12px;
+  font-size: 14px;
   color: #6b7280;
   line-height: 1.6;
 
   .person-field {
     white-space: nowrap;
+  }
 
-    &.ellipsis {
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+  // 地址单独一行，完整展示可换行
+  &.address-row {
+    .person-field {
+      white-space: normal;
+      word-break: break-all;
+      line-height: 1.5;
+      max-width: 100%;
     }
   }
 }
