@@ -208,7 +208,7 @@ const renderPieChart = () => {
           show: true,
           formatter: '{b}\n{c}人',
           color: '#1f2937',
-          fontSize: 12,
+          fontSize: 14,
           lineHeight: 16,
         },
         labelLine: {
