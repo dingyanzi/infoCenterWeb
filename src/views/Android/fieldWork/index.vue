@@ -1,7 +1,7 @@
 <!--
   * 锋馥外勤调度中心 - 手机端首页
-  * 参考图：锋馥外勤调度中心手机端界面设计
   * 功能：人员统计、地区筛选、区域分布饼图、人员列表
+  * 联动：下拉框与饼图双向联动，饼图向下钻取仅到市级
 -->
 <template>
   <div class="field-work-page">
@@ -131,14 +131,12 @@ import { PROVINCE_CITY } from '/@/components/framework/area-cascader/province-ci
 
 const router = useRouter();
 
-
 /* ---------------- 统计数据 ---------------- */
 const stats = reactive({
   total: 0,
   nonMainland: 0,
 });
 
-// 加载状态
 const loading = ref(false);
 
 /* ---------------- 筛选条件 ---------------- */
@@ -150,8 +148,6 @@ const filter = reactive({
 /* ---------------- 省份（接口数据）/ 城市（行政区划插件数据） ---------------- */
 const provinceOptions = ref([]);
 
-// 城市下拉：根据所选省份，从行政区划插件 PROVINCE_CITY 中取对应城市的 children
-// 城市名统一带"市"后缀（如"杭州" → "杭州市"），下拉展示与接口传参均用该名称
 const cityOptions = computed(() => {
   if (!filter.province) return [];
   const province = PROVINCE_CITY.find((p) => p.label === filter.province);
@@ -162,25 +158,18 @@ const cityOptions = computed(() => {
   });
 });
 
-/* ---------------- 饼图数据 ---------------- */
-// 蓝色色阶（仅用于接口无数据时的兜底展示）
+/* ---------------- 饼图数据和颜色 ---------------- */
+// 预设高级科技感色板（完美搭配 #4a8dff）
 const BLUE_PALETTE = ['#00E5FF', '#7C4DFF', '#2ED8A7', '#FFD166', '#FF5C8A', '#4A8DFF', '#00B4D8', '#9D4EDD'];
 
-// 为每个扇区生成不同颜色：按色相环均匀分布，保证省份间颜色不重复（低饱和、中亮度，观感柔和）
 const getDistinctColor = (index) => {
-  const goldenRatioConjugate = 0.618033988749895;
-  // 随着索引增加，色相按黄金比例增加，视觉上非常舒适
-  const hue = (index * 360 * goldenRatioConjugate) % 360;
-  // 提升饱和度(S)至 75%，亮度(L)保持 60% 左右，保证在暗色背景上的通透感
-  return `hsl(${hue}, 75%, 60%)`;
+  return BLUE_PALETTE[index % BLUE_PALETTE.length];
 };
 
-// 省份名简称（用于饼图标签）
 const shortenName = (name) => {
   return String(name || '').replace(/省|市|特别行政区|壮族自治区|回族自治区|维吾尔自治区|自治区|壮族|回族|维吾尔/g, '');
 };
 
-// 全国默认分布数据（接口无数据时兜底）
 const DEFAULT_PIE_DATA = () => [
   { name: '浙江', value: 0, color: BLUE_PALETTE[0] },
   { name: '江苏', value: 0, color: BLUE_PALETTE[1] },
@@ -188,13 +177,15 @@ const DEFAULT_PIE_DATA = () => [
 ];
 
 const pieData = ref([]);
+const pieChartRef = ref(null);
+let pieChart = null;
 
 const renderPieChart = () => {
   if (!pieChartRef.value) return;
   if (!pieChart) pieChart = echarts.init(pieChartRef.value);
+  
   pieChart.setOption({
     tooltip: { trigger: 'item', show: false },
-    // 底部图例
     legend: {
       orient: 'horizontal',
       bottom: 0,
@@ -203,10 +194,7 @@ const renderPieChart = () => {
       itemWidth: 10,
       itemHeight: 10,
       itemGap: 12,
-      textStyle: {
-        color: '#4b5563',
-        fontSize: 11,
-      },
+      textStyle: { color: '#4b5563', fontSize: 11 },
       formatter: (name) => {
         const item = pieData.value.find((d) => d.name === name);
         return `${name} ${item ? item.value : 0}人`;
@@ -215,22 +203,16 @@ const renderPieChart = () => {
     series: [
       {
         type: 'pie',
-        // 南丁格尔玫瑰图（基础 radius 类型：半径与数值成比例）
         radius: ['15%', '68%'],
-        // 中心上移，为底部图例留出空间
         center: ['50%', '35%'],
         startAngle: 90,
-        // 不使用引导线和扇区标签，信息全部由底部图例展示
         label: { show: false },
         labelLine: { show: false },
         itemStyle: {
           borderColor: '#fff',
           borderWidth: 2,
         },
-        emphasis: {
-          scale: true,
-          scaleSize: 4,
-        },
+        emphasis: { scale: true, scaleSize: 4 },
         data: pieData.value.map((d) => ({
           name: d.name,
           value: d.value,
@@ -239,16 +221,31 @@ const renderPieChart = () => {
       },
     ],
   });
-};
 
-const pieChartRef = ref(null);
-let pieChart = null;
+  // 核心：饼图点击联动下拉框
+  pieChart.off('click');
+  pieChart.on('click', function (params) {
+    const clickName = params.name;
+    
+    // 如果当前是选中市，点击不再往下钻
+    if (filter.city) return;
+
+    // 如果当前只有省份被选中，点击饼图则赋值给城市，并触发筛选
+    if (filter.province && !filter.city) {
+      filter.city = clickName;
+      onFilterChange();
+    } 
+    // 如果当前是未选省份，点击饼图则赋值给省份
+    else if (!filter.province) {
+      filter.province = clickName;
+      onProvinceChange(); 
+    }
+  });
+};
 
 /* ---------------- 人员列表（接口数据） ---------------- */
 const personList = ref([]);
 
-
-// 将接口返回的人员字段映射为页面展示字段
 const mapPerson = (item, index) => {
   const code = (item.Name || '').charCodeAt(0) || 0;
   return {
@@ -261,7 +258,6 @@ const mapPerson = (item, index) => {
   };
 };
 
-// 根据地址名称加载人员列表（仅在筛选后调用）
 const loadPersons = async (addressName) => {
   if (!addressName) return;
   loading.value = true;
@@ -277,36 +273,101 @@ const loadPersons = async (addressName) => {
   }
 };
 
-// 获取考勤地域人数统计：统计卡片 + 省份/城市下拉 + 全国饼图
+/* ---------------- 根据人员列表动态生成饼图 (只展示到市) ---------------- */
+const updatePieDataByFilter = () => {
+  const dataMap = {};
+
+  // 注意：因为当选中城市时我们不调用此函数，所以这里不需要判断 filter.city
+  if (filter.province) {
+    // 只选省：看省内各市的分布
+    personList.value.forEach((p) => {
+      // 提取地址中的“市” (例如：杭州市余杭区 -> 匹配到杭州市)
+      const match = (p.address || '').match(/([\u4e00-\u9fa5]{2,10}?市)/);
+      const key = match ? match[1] : '其他区域';
+      if (key) dataMap[key] = (dataMap[key] || 0) + 1;
+    });
+  } else {
+    // 未选省：看全国各省分布（兜底数据）
+    pieData.value = DEFAULT_PIE_DATA();
+    nextTick(() => renderPieChart());
+    return;
+  }
+
+  const keys = Object.keys(dataMap);
+  if (keys.length === 0) {
+    pieData.value = DEFAULT_PIE_DATA();
+  } else {
+    pieData.value = keys.map((key, i) => ({
+      name: shortenName(key),
+      value: dataMap[key],
+      color: getDistinctColor(i),
+    }));
+  }
+  nextTick(() => renderPieChart());
+};
+
+/* ---------------- 筛选联动 ---------------- */
+const onProvinceChange = () => {
+  filter.city = undefined;
+  onFilterChange();
+};
+
+const onFilterChange = async () => {
+  if (filter.province) {
+    loading.value = true;
+    // 根据省份或城市加载人员列表
+    await loadPersons(filter.city || filter.province);
+    loading.value = false;
+    
+    // 核心修改：只有当没有选中城市（仅选择了省份）时，才联动更新饼图
+    if (!filter.city) {
+      updatePieDataByFilter();
+    }
+    // 如果选中了城市，此处不执行任何更新饼图的操作，饼图保持原样！
+  } else {
+    // 清空省份时同步清空城市，不展示人员列表
+    filter.city = undefined;
+    personList.value = [];
+    // 恢复默认饼图
+    pieData.value = DEFAULT_PIE_DATA();
+    nextTick(() => renderPieChart());
+  }
+};
+
+/* ---------------- 重置筛选 ---------------- */
+const resetFilter = () => {
+  filter.province = undefined;
+  filter.city = undefined;
+  personList.value = [];
+  // 核心修改：重新请求初始接口，恢复真实数据
+  loadAddressStaticData(); 
+};
+
+/* ---------------- 初始加载 ---------------- */
 const loadAddressStaticData = async () => {
   try {
     const res = await GetAddressStaticDataApi.getAddressStaticData();
     const data = res && res.data ? res.data : {};
 
-    if (data.Count) {
-      stats.total = data.Count;
-    }
+    if (data.Count) stats.total = data.Count;
 
-    // 省份下拉 + 饼图：ProvinceData（AddressName 为空的表示国外考情，不参与展示）
     const provinceArr = Array.isArray(data.ProvinceData) ? data.ProvinceData : [];
     const provinceList = provinceArr.filter((item) => item.AddressName);
     provinceOptions.value = provinceList.map((item) => ({ value: item.AddressName, label: item.AddressName }));
 
-    // 饼图展示所有省份分布（ProvinceData 全部，按人数降序，每省不同颜色）
+    // 默认加载全国饼图
     pieData.value = provinceList
       .slice()
       .sort((a, b) => (b.Count || 0) - (a.Count || 0))
       .map((item, i) => ({
         name: shortenName(item.AddressName),
         value: item.Count || 0,
-        color: getDistinctColor(i, provinceList.length),
+        color: getDistinctColor(i),
       }));
-    if (pieData.value.length === 0) {
-      pieData.value = DEFAULT_PIE_DATA();
-    }
+    if (pieData.value.length === 0) pieData.value = DEFAULT_PIE_DATA();
+    
     nextTick(() => renderPieChart());
 
-    // 非大陆外勤人数（addressName 传 'NoPos'）
     loadNonMainland();
   } catch (e) {
     console.error(e);
@@ -315,7 +376,6 @@ const loadAddressStaticData = async () => {
   }
 };
 
-// 非大陆外勤人数
 const loadNonMainland = async () => {
   try {
     const res = await GetPersonByAddressName.getPersonByAddressName('NoPos');
@@ -327,44 +387,12 @@ const loadNonMainland = async () => {
   }
 };
 
-/* ---------------- 筛选联动 ---------------- */
-// 省份切换时清空已选城市
-const onProvinceChange = () => {
-  filter.city = undefined;
-  onFilterChange();
-};
 
-const onFilterChange = async () => {
-  if (filter.province) {
-    if (filter.city) {
-      // 已选城市：按城市加载
-      await loadPersons(filter.city);
-    } else {
-      // 只选省份：按省份加载
-      await loadPersons(filter.province);
-    }
-  } else {
-    // 清空省份时同步清空城市，不展示人员（默认不展示所有人）
-    filter.city = undefined;
-    personList.value = [];
-  }
-};
-
-/* ---------------- 重置筛选 ---------------- */
-const resetFilter = () => {
-  filter.province = undefined;
-  filter.city = undefined;
-  // 恢复默认状态：不展示人员列表（饼图始终展示全国省份分布，无需重置）
-  personList.value = [];
-};
 
 /* ---------------- 生命周期 ---------------- */
 onMounted(async () => {
-  // 只加载统计/省份/城市/饼图数据，人员列表默认不展示，筛选后才加载
   await loadAddressStaticData();
-  nextTick(() => {
-    renderPieChart();
-  });
+  nextTick(() => renderPieChart());
   window.addEventListener('resize', handleResize);
 });
 
@@ -402,7 +430,6 @@ const handleResize = () => {
   color: #fff;
 }
 
-
 .page-header {
   height: 48px;
   display: flex;
@@ -423,13 +450,8 @@ const handleResize = () => {
     cursor: pointer;
     transition: background 0.2s;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    &.placeholder {
-      visibility: hidden;
-    }
+    &:hover { background: rgba(255, 255, 255, 0.12); }
+    &.placeholder { visibility: hidden; }
   }
 
   .page-title {
@@ -443,7 +465,7 @@ const handleResize = () => {
   }
 }
 
-/* ============ 统计卡片（骑跨在蓝白交界处） ============ */
+/* ============ 统计卡片 ============ */
 .stats-cards {
   position: relative;
   z-index: 2;
@@ -467,10 +489,6 @@ const handleResize = () => {
     font-size: 14px;
     color: #4a8dff;
     font-weight: 500;
-
-    .label-icon {
-      font-size: 12px;
-    }
   }
 
   .stat-value {
@@ -479,21 +497,14 @@ const handleResize = () => {
     align-items: baseline;
     gap: 6px;
 
-    .value-icon {
-      color: #4a8dff;
-      font-size: 18px;
-      margin-right: 4px;
-    }
+    .value-icon { color: #4a8dff; font-size: 18px; margin-right: 4px; }
     .number {
       font-size: 26px;
       font-weight: 700;
       color: #1f2937;
       font-family: 'DIN Alternate', -apple-system, sans-serif;
     }
-    .unit {
-      font-size: 12px;
-      color: #6b7280;
-    }
+    .unit { font-size: 12px; color: #6b7280; }
   }
 }
 
@@ -526,10 +537,7 @@ const handleResize = () => {
     color: #fff;
     box-shadow: 0 2px 10px rgba(74, 141, 255, 0.35);
   }
-
-  &:active {
-    transform: scale(0.92);
-  }
+  &:active { transform: scale(0.92); }
 }
 
 .filter-select {
@@ -569,18 +577,10 @@ const handleResize = () => {
     background: #fff;
     border-radius: 50%;
 
-    &:hover {
-      color: #4a8dff;
-    }
+    &:hover { color: #4a8dff; }
   }
-  :deep(.caret-icon) {
-    color: #9ca3af;
-    font-size: 12px;
-  }
-
-  &.ant-select-disabled {
-    opacity: 0.55;
-  }
+  :deep(.caret-icon) { color: #9ca3af; font-size: 12px; }
+  &.ant-select-disabled { opacity: 0.55; }
 }
 
 /* ============ 通用卡片 ============ */
@@ -601,11 +601,6 @@ const handleResize = () => {
   align-items: baseline;
   gap: 6px;
 
-  .title-hint {
-    font-size: 11px;
-    font-weight: 400;
-    color: #9ca3af;
-  }
   .title-count {
     font-weight: 500;
     color: #6b7280;
@@ -640,10 +635,7 @@ const handleResize = () => {
   gap: 4px;
 }
 
-.person-list {
-  display: flex;
-  flex-direction: column;
-}
+.person-list { display: flex; flex-direction: column; }
 
 .person-item {
   display: flex;
@@ -654,10 +646,7 @@ const handleResize = () => {
   cursor: pointer;
   transition: background 0.2s;
 
-  &:last-child {
-    border-bottom: none;
-  }
-
+  &:last-child { border-bottom: none; }
   &:hover {
     background: #f9fbff;
     margin: 0 -10px;
@@ -679,10 +668,7 @@ const handleResize = () => {
   background: #4a8dff;
 }
 
-.person-info {
-  flex: 1;
-  min-width: 0;
-}
+.person-info { flex: 1; min-width: 0; }
 
 .person-name {
   font-size: 16px;
@@ -698,9 +684,7 @@ const handleResize = () => {
   color: #6b7280;
   line-height: 1.6;
 
-  .person-field {
-    white-space: nowrap;
-  }
+  .person-field { white-space: nowrap; }
 
   // 地址单独一行，完整展示可换行
   &.address-row {
@@ -711,14 +695,6 @@ const handleResize = () => {
       max-width: 100%;
     }
   }
-}
-
-.list-footer {
-  text-align: center;
-  font-size: 12px;
-  color: #9ca3af;
-  padding: 14px 0 4px;
-  letter-spacing: 0.5px;
 }
 
 .empty-tip {
