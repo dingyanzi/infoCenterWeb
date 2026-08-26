@@ -9,7 +9,7 @@ import NoPrivilege from '/@/views/system/40X/403.vue';
 //大屏页面
 import ScreenFieldWork from '/@/views/system/screen/fieldWork/index.vue';
 import ScreenCar from '/@/views/system/screen/nuoCar/index.vue';
-
+import AndroidIndex from '/@/views/Android/fieldWork/index.vue';
 
 export const routerArray = [
     ...loginRouters,
@@ -19,4 +19,5 @@ export const routerArray = [
     { path: '/403', name: '403', component: NoPrivilege },
     { path: '/screen/fieldWork', name: 'screenFieldWork', component: ScreenFieldWork },
     { path: '/screen/car', name: 'screenCar', component: ScreenCar },
+    { path: '/Android/fieldWork', name: 'AndroidFieldWork', component: AndroidIndex},
 ];

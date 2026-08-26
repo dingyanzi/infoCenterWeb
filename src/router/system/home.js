@@ -17,7 +17,7 @@ export const homeRouters = [
     path: '/',
     name: '_home',
     redirect: (to) => {
-      return isMobileDevice() ? { path: '/Android/login' } : { name: HOME_PAGE_NAME };
+      return isMobileDevice() ? { path: '/Android/fieldWork' } : { name: HOME_PAGE_NAME };
     },
     component: SmartLayout,
     meta: {
