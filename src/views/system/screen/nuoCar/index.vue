@@ -547,7 +547,7 @@ onMounted(() => {
   setScale();
   window.addEventListener('resize', setScale);
   initData();
-  // startStackerSimulation();
+  startStackerSimulation();
 });
 onBeforeUnmount(() => {
   stopSignalR();
