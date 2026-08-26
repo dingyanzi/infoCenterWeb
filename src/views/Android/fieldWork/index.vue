@@ -47,7 +47,7 @@
         class="filter-select"
         :bordered="false"
         :show-arrow="true"
-        @change="onFilterChange"
+        @change="onProvinceChange"
       >
         <template #suffixIcon>
           <CaretDownOutlined class="caret-icon" />
@@ -59,6 +59,7 @@
         placeholder="城市"
         class="filter-select"
         :bordered="false"
+        :allow-clear="true"
         :disabled="!filter.province"
         @change="onFilterChange"
       >
@@ -84,11 +85,11 @@
     <!-- 人员列表 -->
     <div class="card list-card">
       <div class="card-title list-title">
-        全部人员<span class="title-count">({{ filteredPersonList.length }})</span>
+        全部人员<span class="title-count">({{ personList.length }})</span>
       </div>
       <div class="person-list">
-        <div class="person-item" v-for="person in filteredPersonList" :key="person.id">
-          <div class="person-avatar" :style="{ background: person.avatarColor }">
+        <div class="person-item" v-for="person in personList" :key="person.id">
+          <div class="person-avatar">
             <UserOutlined />
           </div>
           <div class="person-info">
@@ -105,7 +106,10 @@
             </div>
           </div>
         </div>
-        <div v-if="filteredPersonList.length === 0" class="empty-tip">暂无数据</div>
+        <div v-if="loading" class="empty-tip">加载中...</div>
+        <div v-else-if="personList.length === 0" class="empty-tip">
+          {{ filter.province ? '暂无数据' : '请选择省份或城市查看人员' }}
+        </div>
       </div>
     </div>
   </div>
@@ -122,15 +126,20 @@ import {
 } from '@ant-design/icons-vue';
 import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
+import { GetAddressStaticDataApi, GetPersonByAddressName } from '/@/api/system/home-view';
+import { PROVINCE_CITY } from '/@/components/framework/area-cascader/province-city';
 
 const router = useRouter();
 
 
 /* ---------------- 统计数据 ---------------- */
 const stats = reactive({
-  total: 56,
+  total: 0,
   nonMainland: 0,
 });
+
+// 加载状态
+const loading = ref(false);
 
 /* ---------------- 筛选条件 ---------------- */
 const filter = reactive({
@@ -138,88 +147,82 @@ const filter = reactive({
   city: undefined,
 });
 
-/* ---------------- 省份 / 城市 mock 数据 ---------------- */
-const provinceOptions = [
-  { value: 'zhejiang', label: '浙江省' },
-  { value: 'jiangsu', label: '安徽省' },
-  { value: 'shandong', label: '山东省' },
-  { value: 'fujian', label: '福建省' },
-  { value: 'guangdong', label: '广东省' },
-  { value: 'sichuan', label: '四川省' },
-  { value: 'hubei', label: '湖北省' },
-  { value: 'hunan', label: '湖南省' },
-];
+/* ---------------- 省份（接口数据）/ 城市（行政区划插件数据） ---------------- */
+const provinceOptions = ref([]);
 
-const cityMap = {
-  zhejiang: [
-    { value: 'hangzhou', label: '杭州市' },
-    { value: 'ningbo', label: '宁波市' },
-    { value: 'wenzhou', label: '温州市' },
-    { value: 'jiaxing', label: '嘉兴市' },
-  ],
-  jiangsu: [
-    { value: 'nanjing', label: '南京市' },
-    { value: 'suzhou', label: '苏州市' },
-    { value: 'wuxi', label: '无锡市' },
-  ],
-  shandong: [
-    { value: 'jinan', label: '济南市' },
-    { value: 'qingdao', label: '青岛市' },
-  ],
-  fujian: [{ value: 'fuzhou', label: '福州市' }, { value: 'xiamen', label: '厦门市' }],
-  guangdong: [
-    { value: 'guangzhou', label: '广州市' },
-    { value: 'shenzhen', label: '深圳市' },
-  ],
-  sichuan: [{ value: 'chengdu', label: '成都市' }, { value: 'mianyang', label: '绵阳市' }],
-  hubei: [{ value: 'wuhan', label: '武汉市' }],
-  hunan: [{ value: 'changsha', label: '长沙市' }],
-};
-
-const cityOptions = computed(() => (filter.province ? cityMap[filter.province] || [] : []));
+// 城市下拉：根据所选省份，从行政区划插件 PROVINCE_CITY 中取对应城市的 children
+// 城市名统一带"市"后缀（如"杭州" → "杭州市"），下拉展示与接口传参均用该名称
+const cityOptions = computed(() => {
+  if (!filter.province) return [];
+  const province = PROVINCE_CITY.find((p) => p.label === filter.province);
+  if (!province || !Array.isArray(province.children)) return [];
+  return province.children.map((c) => {
+    const label = c.label.endsWith('市') ? c.label : `${c.label}市`;
+    return { value: label, label };
+  });
+});
 
 /* ---------------- 饼图数据 ---------------- */
-// 蓝色三色阶（深→中→浅）
-const BLUE_PALETTE = ['#1F5BFF', '#6FA3FF', '#B8D4FF', '#D9E6FF', '#EAF2FF'];
+// 蓝色色阶（仅用于接口无数据时的兜底展示）
+const BLUE_PALETTE = ['#00E5FF', '#7C4DFF', '#2ED8A7', '#FFD166', '#FF5C8A', '#4A8DFF', '#00B4D8', '#9D4EDD'];
 
-// 全国默认分布数据
+// 为每个扇区生成不同颜色：按色相环均匀分布，保证省份间颜色不重复（低饱和、中亮度，观感柔和）
+const getDistinctColor = (index) => {
+  const goldenRatioConjugate = 0.618033988749895;
+  // 随着索引增加，色相按黄金比例增加，视觉上非常舒适
+  const hue = (index * 360 * goldenRatioConjugate) % 360;
+  // 提升饱和度(S)至 75%，亮度(L)保持 60% 左右，保证在暗色背景上的通透感
+  return `hsl(${hue}, 75%, 60%)`;
+};
+
+// 省份名简称（用于饼图标签）
+const shortenName = (name) => {
+  return String(name || '').replace(/省|市|特别行政区|壮族自治区|回族自治区|维吾尔自治区|自治区|壮族|回族|维吾尔/g, '');
+};
+
+// 全国默认分布数据（接口无数据时兜底）
 const DEFAULT_PIE_DATA = () => [
-  { name: '浙江', value: 10, color: BLUE_PALETTE[0] },
-  { name: '江苏', value: 10, color: BLUE_PALETTE[1] },
-  { name: '安徽', value: 5, color: BLUE_PALETTE[2] },
+  { name: '浙江', value: 0, color: BLUE_PALETTE[0] },
+  { name: '江苏', value: 0, color: BLUE_PALETTE[1] },
+  { name: '安徽', value: 0, color: BLUE_PALETTE[2] },
 ];
 
-const pieData = ref(DEFAULT_PIE_DATA());
+const pieData = ref([]);
 
 const renderPieChart = () => {
   if (!pieChartRef.value) return;
   if (!pieChart) pieChart = echarts.init(pieChartRef.value);
   pieChart.setOption({
     tooltip: { trigger: 'item', show: false },
+    // 底部图例
+    legend: {
+      orient: 'horizontal',
+      bottom: 0,
+      left: 'center',
+      icon: 'circle',
+      itemWidth: 10,
+      itemHeight: 10,
+      itemGap: 12,
+      textStyle: {
+        color: '#4b5563',
+        fontSize: 11,
+      },
+      formatter: (name) => {
+        const item = pieData.value.find((d) => d.name === name);
+        return `${name} ${item ? item.value : 0}人`;
+      },
+    },
     series: [
       {
         type: 'pie',
-        radius: ['42%', '62%'],
-        center: ['50%', '50%'],
-        avoidLabelOverlap: true,
+        // 南丁格尔玫瑰图（基础 radius 类型：半径与数值成比例）
+        radius: ['15%', '68%'],
+        // 中心上移，为底部图例留出空间
+        center: ['50%', '35%'],
         startAngle: 90,
-        // 引出线 + 文字标注
-        label: {
-          show: true,
-          formatter: '{b}\n{c}人',
-          color: '#1f2937',
-          fontSize: 14,
-          lineHeight: 16,
-        },
-        labelLine: {
-          show: true,
-          length: 10,
-          length2: 6,
-          lineStyle: {
-            color: '#9fb4d8',
-            width: 1,
-          },
-        },
+        // 不使用引导线和扇区标签，信息全部由底部图例展示
+        label: { show: false },
+        labelLine: { show: false },
         itemStyle: {
           borderColor: '#fff',
           borderWidth: 2,
@@ -241,66 +244,124 @@ const renderPieChart = () => {
 const pieChartRef = ref(null);
 let pieChart = null;
 
-/* ---------------- 人员列表 mock 数据 ---------------- */
-const avatarColors = ['#4A90FF', '#FF8A4A',];
+/* ---------------- 人员列表（接口数据） ---------------- */
+const personList = ref([]);
 
-const personList = ref([
-  { id: 1, name: '张三', department: '运营部', position: '外勤主管', address: '余杭专...', phone: '138****1234', province: 'zhejiang', city: 'hangzhou' },
-  { id: 2, name: '李四', department: '销售部', position: '外勤专员', address: '余杭专...', phone: '139****5678', province: 'zhejiang', city: 'hangzhou' },
-  { id: 3, name: '王五', department: '运维部', position: '工程师', address: '姑苏区平江路...', phone: '137****9012', province: 'jiangsu', city: 'suzhou' },
-  { id: 4, name: '赵六', department: '客服部', position: '服务专员', address: '泰山区中山路...', phone: '136****3456', province: 'shandong', city: 'jinan' },
-  { id: 5, name: '钱七', department: '销售部', position: '外勤专员', address: '思明区...', phone: '135****7890', province: 'fujian', city: 'xiamen' },
-  { id: 6, name: '孙八', department: '运营部', position: '外勤主管', address: '天河区...', phone: '134****2345', province: 'guangdong', city: 'guangzhou' },
-  { id: 7, name: '周九', department: '技术部', position: '工程师', address: '福田区...', phone: '133****6789', province: 'guangdong', city: 'shenzhen' },
-  { id: 8, name: '吴十', department: '客服部', position: '服务专员', address: '锦江区...', phone: '132****0123', province: 'sichuan', city: 'chengdu' },
-  { id: 9, name: '郑十一', department: '销售部', position: '外勤专员', address: '武昌区...', phone: '131****4567', province: 'hubei', city: 'wuhan' },
-  { id: 10, name: '王十二', department: '运营部', position: '外勤主管', address: '岳麓区...', phone: '130****8901', province: 'hunan', city: 'changsha' },
-].map((p) => ({ ...p, avatarColor: avatarColors[p.id % avatarColors.length] })));
 
-/* ---------------- 筛选联动 ---------------- */
-const filteredPersonList = computed(() => {
-  return personList.value.filter((p) => {
-    if (filter.province && p.province !== filter.province) return false;
-    if (filter.city && p.city !== filter.city) return false;
-    return true;
-  });
-});
-
-const onFilterChange = () => {
-  // 联动饼图：根据筛选范围更新饼图数据
-  const list = filteredPersonList.value;
-  // 按省/市 聚合（这里用省做维度示例）
-  const groups = {};
-  list.forEach((p) => {
-    const key = p.province;
-    const label = provinceOptions.find((o) => o.value === key)?.label?.replace(/[省市]$/, '') || key;
-    if (!groups[label]) groups[label] = { name: label, value: 0, color: '' };
-    groups[label].value += 1;
-  });
-  // 如果没有筛选或者筛了但没数据，回退到全国
-  let nextData = Object.values(groups);
-  if (nextData.length === 0) {
-    nextData = DEFAULT_PIE_DATA();
-  } else {
-    nextData = nextData
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5)
-      .map((d, i) => ({ ...d, color: BLUE_PALETTE[i] || BLUE_PALETTE[BLUE_PALETTE.length - 1] }));
-  }
-  pieData.value = nextData;
-  nextTick(() => renderPieChart());
+// 将接口返回的人员字段映射为页面展示字段
+const mapPerson = (item, index) => {
+  const code = (item.Name || '').charCodeAt(0) || 0;
+  return {
+    id: index,
+    name: item.Name || '-',
+    department: (item.Department || '-').split('\\').pop(),
+    position: item.JobTitle || '-',
+    address: item.PositionDetail || item.AttendenceRemark || '-',
+    phone: item.Phone || '-',
+  };
 };
 
-/* ---------------- 重置筛选：恢复全国数据 ---------------- */
+// 根据地址名称加载人员列表（仅在筛选后调用）
+const loadPersons = async (addressName) => {
+  if (!addressName) return;
+  loading.value = true;
+  try {
+    const res = await GetPersonByAddressName.getPersonByAddressName(addressName);
+    const list = res && res.data && Array.isArray(res.data) ? res.data : [];
+    personList.value = list.map((item, index) => mapPerson(item, index));
+  } catch (e) {
+    console.error(e);
+    personList.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 获取考勤地域人数统计：统计卡片 + 省份/城市下拉 + 全国饼图
+const loadAddressStaticData = async () => {
+  try {
+    const res = await GetAddressStaticDataApi.getAddressStaticData();
+    const data = res && res.data ? res.data : {};
+
+    if (data.Count) {
+      stats.total = data.Count;
+    }
+
+    // 省份下拉 + 饼图：ProvinceData（AddressName 为空的表示国外考情，不参与展示）
+    const provinceArr = Array.isArray(data.ProvinceData) ? data.ProvinceData : [];
+    const provinceList = provinceArr.filter((item) => item.AddressName);
+    provinceOptions.value = provinceList.map((item) => ({ value: item.AddressName, label: item.AddressName }));
+
+    // 饼图展示所有省份分布（ProvinceData 全部，按人数降序，每省不同颜色）
+    pieData.value = provinceList
+      .slice()
+      .sort((a, b) => (b.Count || 0) - (a.Count || 0))
+      .map((item, i) => ({
+        name: shortenName(item.AddressName),
+        value: item.Count || 0,
+        color: getDistinctColor(i, provinceList.length),
+      }));
+    if (pieData.value.length === 0) {
+      pieData.value = DEFAULT_PIE_DATA();
+    }
+    nextTick(() => renderPieChart());
+
+    // 非大陆外勤人数（addressName 传 'NoPos'）
+    loadNonMainland();
+  } catch (e) {
+    console.error(e);
+    pieData.value = DEFAULT_PIE_DATA();
+    nextTick(() => renderPieChart());
+  }
+};
+
+// 非大陆外勤人数
+const loadNonMainland = async () => {
+  try {
+    const res = await GetPersonByAddressName.getPersonByAddressName('NoPos');
+    const list = res && res.data && Array.isArray(res.data) ? res.data : [];
+    stats.nonMainland = list.length;
+  } catch (e) {
+    console.error(e);
+    stats.nonMainland = 0;
+  }
+};
+
+/* ---------------- 筛选联动 ---------------- */
+// 省份切换时清空已选城市
+const onProvinceChange = () => {
+  filter.city = undefined;
+  onFilterChange();
+};
+
+const onFilterChange = async () => {
+  if (filter.province) {
+    if (filter.city) {
+      // 已选城市：按城市加载
+      await loadPersons(filter.city);
+    } else {
+      // 只选省份：按省份加载
+      await loadPersons(filter.province);
+    }
+  } else {
+    // 清空省份时同步清空城市，不展示人员（默认不展示所有人）
+    filter.city = undefined;
+    personList.value = [];
+  }
+};
+
+/* ---------------- 重置筛选 ---------------- */
 const resetFilter = () => {
   filter.province = undefined;
   filter.city = undefined;
-  pieData.value = DEFAULT_PIE_DATA();
-  nextTick(() => renderPieChart());
+  // 恢复默认状态：不展示人员列表（饼图始终展示全国省份分布，无需重置）
+  personList.value = [];
 };
 
 /* ---------------- 生命周期 ---------------- */
-onMounted(() => {
+onMounted(async () => {
+  // 只加载统计/省份/城市/饼图数据，人员列表默认不展示，筛选后才加载
+  await loadAddressStaticData();
   nextTick(() => {
     renderPieChart();
   });
@@ -501,6 +562,17 @@ const handleResize = () => {
     color: #9ca3af;
     font-size: 12px;
   }
+  :deep(.ant-select-clear) {
+    color: #9ca3af;
+    font-size: 12px;
+    right: 10px;
+    background: #fff;
+    border-radius: 50%;
+
+    &:hover {
+      color: #4a8dff;
+    }
+  }
   :deep(.caret-icon) {
     color: #9ca3af;
     font-size: 12px;
@@ -558,7 +630,7 @@ const handleResize = () => {
 
 .pie-chart {
   width: 100%;
-  height: 210px;
+  height: 280px;
 }
 
 /* ============ 人员列表 ============ */
@@ -604,6 +676,7 @@ const handleResize = () => {
   color: #fff;
   font-size: 20px;
   flex-shrink: 0;
+  background: #4a8dff;
 }
 
 .person-info {
