@@ -250,7 +250,6 @@ const callPhone = (phone) => {
 };
 
 const loadPersons = async (addressName) => {
-  if (!addressName) return;
   loading.value = true;
   try {
     const res = await GetPersonByAddressName.getPersonByAddressName(addressName);
@@ -387,6 +386,7 @@ const loadNonMainland = async () => {
 /* ---------------- 生命周期 ---------------- */
 onMounted(async () => {
   await loadAddressStaticData();
+   await loadPersons();
   nextTick(() => renderPieChart());
   window.addEventListener('resize', handleResize);
   // 手机端等比缩放适配
