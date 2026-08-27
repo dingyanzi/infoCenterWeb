@@ -205,8 +205,8 @@ const renderPieChart = () => {
     series: [
       {
         type: 'pie',
-        radius: ['15%', '68%'],
-        center: ['50%', '35%'],
+        radius: ['15%', '60%'],
+        center: ['50%', '32%'],
         startAngle: 90,
         label: { show: false },
         labelLine: { show: false },
