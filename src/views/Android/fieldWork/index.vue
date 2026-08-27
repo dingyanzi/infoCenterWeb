@@ -61,6 +61,20 @@
         :bordered="false"
         :allow-clear="true"
         :disabled="!filter.province"
+        @change="onCityChange"
+      >
+        <template #suffixIcon>
+          <CaretDownOutlined class="caret-icon" />
+        </template>
+      </a-select>
+      <a-select
+        v-model:value="filter.district"
+        :options="districtOptions"
+        placeholder="区"
+        class="filter-select"
+        :bordered="false"
+        :allow-clear="true"
+        :disabled="!filter.city"
         @change="onFilterChange"
       >
         <template #suffixIcon>
@@ -137,6 +151,7 @@ import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
 import { GetAddressStaticDataApi, GetPersonByAddressName } from '/@/api/system/home-view';
 import { PROVINCE_CITY } from '/@/components/framework/area-cascader/province-city';
+import { PROVINCE_CITY_DISTRICT } from '/@/components/framework/area-cascader/province-city-district';
 
 const router = useRouter();
 
@@ -152,6 +167,7 @@ const loading = ref(false);
 const filter = reactive({
   province: undefined,
   city: undefined,
+  district: undefined,
 });
 
 /* ---------------- 省份（接口数据）/ 城市（行政区划插件数据） ---------------- */
@@ -167,6 +183,17 @@ const cityOptions = computed(() => {
   });
 });
 
+// 区下拉：根据所选省/市，从省市区插件 PROVINCE_CITY_DISTRICT 中取对应区的 children
+const districtOptions = computed(() => {
+  if (!filter.province || !filter.city) return [];
+  const province = PROVINCE_CITY_DISTRICT.find((p) => p.label === filter.province);
+  if (!province || !Array.isArray(province.children)) return [];
+  // PROVINCE_CITY_DISTRICT 市级 label 带"市"后缀（如"杭州市"），与已选城市直接匹配
+  const city = province.children.find((c) => c.label === filter.city);
+  if (!city || !Array.isArray(city.children)) return [];
+  return city.children.map((d) => ({ value: d.label, label: d.label }));
+});
+
 /* ---------------- 饼图数据和颜色 ---------------- */
 // 预设高级科技感色板（完美搭配 #4a8dff）
 const BLUE_PALETTE = ['#00E5FF', '#7C4DFF', '#2ED8A7', '#FFD166', '#FF5C8A', '#4A8DFF', '#00B4D8', '#9D4EDD'];
@@ -178,12 +205,6 @@ const getDistinctColor = (index) => {
 const shortenName = (name) => {
   return String(name || '').replace(/省|市|特别行政区|壮族自治区|回族自治区|维吾尔自治区|自治区|壮族|回族|维吾尔/g, '');
 };
-
-const DEFAULT_PIE_DATA = () => [
-  { name: '浙江', value: 0, color: BLUE_PALETTE[0] },
-  { name: '江苏', value: 0, color: BLUE_PALETTE[1] },
-  { name: '安徽', value: 0, color: BLUE_PALETTE[2] },
-];
 
 const pieData = ref([]);
 const pieChartRef = ref(null);
@@ -272,7 +293,13 @@ const loadPersons = async (addressName) => {
 const updatePieDataByFilter = () => {
   const dataMap = {};
 
-  if (filter.city) {
+  if (filter.district) {
+    // 选了区：看区内人员部门分布
+    personList.value.forEach((p) => {
+      const key = p.department || '其他';
+      dataMap[key] = (dataMap[key] || 0) + 1;
+    });
+  } else if (filter.city) {
     // 选了市：看市内各区县分布（从人员地址提取"区/县"）
     personList.value.forEach((p) => {
       const addr = p.address || '';
@@ -290,14 +317,14 @@ const updatePieDataByFilter = () => {
     });
   } else {
     // 未选省：全国分布（兜底数据）
-    pieData.value = DEFAULT_PIE_DATA();
+    pieData.value = [];
     nextTick(() => renderPieChart());
     return;
   }
 
   const keys = Object.keys(dataMap);
   if (keys.length === 0) {
-    pieData.value = DEFAULT_PIE_DATA();
+    pieData.value = [];
   } else {
     pieData.value = keys.map((key, i) => ({
       name: shortenName(key),
@@ -309,26 +336,35 @@ const updatePieDataByFilter = () => {
 };
 
 /* ---------------- 筛选联动 ---------------- */
+// 省份切换时清空已选城市和区
 const onProvinceChange = () => {
   filter.city = undefined;
+  filter.district = undefined;
+  onFilterChange();
+};
+
+// 城市切换时清空已选区
+const onCityChange = () => {
+  filter.district = undefined;
   onFilterChange();
 };
 
 const onFilterChange = async () => {
   if (filter.province) {
     loading.value = true;
-    // 根据省份或城市加载人员列表
-    await loadPersons(filter.city || filter.province);
+    // 按 区/市/省 优先级加载人员列表
+    await loadPersons(filter.district || filter.city || filter.province);
     loading.value = false;
 
-    // 选省 / 选市均联动更新饼图（省→市内城市分布，市→市内区县分布）
+    // 选省 / 选市 / 选区均联动更新饼图
     updatePieDataByFilter();
   } else {
-    // 清空省份时同步清空城市，不展示人员列表
+    // 清空省份时同步清空城市和区，不展示人员列表
     filter.city = undefined;
+    filter.district = undefined;
     personList.value = [];
     // 恢复默认饼图
-    pieData.value = DEFAULT_PIE_DATA();
+    pieData.value = [];
     nextTick(() => renderPieChart());
   }
 };
@@ -337,8 +373,9 @@ const onFilterChange = async () => {
 const resetFilter = () => {
   filter.province = undefined;
   filter.city = undefined;
+  filter.district = undefined;
   personList.value = [];
-  // 核心修改：重新请求初始接口，恢复真实数据
+  // 重新请求初始接口，恢复真实数据
   loadAddressStaticData(); 
 };
 
@@ -363,14 +400,13 @@ const loadAddressStaticData = async () => {
         value: item.Count || 0,
         color: getDistinctColor(i, provinceList.length),
       }));
-    if (pieData.value.length === 0) pieData.value = DEFAULT_PIE_DATA();
-    
+
     nextTick(() => renderPieChart());
 
     loadNonMainland();
   } catch (e) {
     console.error(e);
-    pieData.value = DEFAULT_PIE_DATA();
+    pieData.value = [];
     nextTick(() => renderPieChart());
   }
 };
