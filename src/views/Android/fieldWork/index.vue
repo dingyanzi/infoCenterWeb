@@ -4,12 +4,13 @@
   * 联动：下拉框与饼图双向联动，饼图向下钻取仅到市级
 -->
 <template>
-  <div class="field-work-page">
+  <div class="phone-wrapper">
+    <div class="field-work-page" ref="pageRef">
     <!-- 蓝色渐变 header 区 -->
     <div class="header-wrap">
       <!-- 顶部标题 -->
       <div class="page-header">
-        <div class="page-title">锋馥外勤调度指挥中心</div>
+        <div class="page-title">锋馥外勤调度中心</div>
         <div class="back-btn placeholder"></div>
       </div>
     </div>
@@ -133,6 +134,7 @@
           {{ filter.province ? '暂无数据' : '请选择省份或城市查看人员' }}
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>
@@ -429,10 +431,14 @@ onMounted(async () => {
   await loadAddressStaticData();
   nextTick(() => renderPieChart());
   window.addEventListener('resize', handleResize);
+  // 手机端等比缩放适配
+  applyScale();
+  window.addEventListener('resize', applyScale);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
+  window.removeEventListener('resize', applyScale);
   if (pieChart) {
     pieChart.dispose();
     pieChart = null;
@@ -442,15 +448,45 @@ onBeforeUnmount(() => {
 const handleResize = () => {
   if (pieChart) pieChart.resize();
 };
+
+/* ---------------- 手机端等比缩放（375 设计稿基准） ---------------- */
+// 设计稿宽度与最大展示宽度（PC 预览时不超过 480px）
+const DESIGN_WIDTH = 375;
+const MAX_WIDTH = 480;
+
+const pageRef = ref(null);
+
+const applyScale = () => {
+  const el = pageRef.value;
+  if (!el) return;
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  // 手机端等比缩放；超过 480px（如 PC 预览）时锁定上限，保持居中
+  const scale = Math.min(vw / DESIGN_WIDTH, MAX_WIDTH / DESIGN_WIDTH);
+  el.style.transform = `scale(${scale})`;
+  // 外层高度补偿，保证缩放后内容可正常滚动
+  if (el.parentElement) {
+    el.parentElement.style.height = `${el.offsetHeight * scale}px`;
+  }
+};
 </script>
 
 <style lang="less" scoped>
+/* 外层容器：承载缩放后的页面，高度由 JS applyScale 动态补偿 */
+.phone-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  background: #f0f4fa;
+  overflow-x: hidden;
+}
+
 .field-work-page {
+  /* 375 设计稿固定宽度，由 JS applyScale 整体等比缩放（手机端自适应） */
+  width: 375px;
   min-height: 100vh;
   background: #f0f4fa;
   padding-bottom: 40px;
-  max-width: 480px;
   margin: 0 auto;
+  transform-origin: top center;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
   color: #1f2937;
 }
