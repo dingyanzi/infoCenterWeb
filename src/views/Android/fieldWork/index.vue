@@ -76,11 +76,16 @@
 
     <!-- 区域分布占比 饼图 -->
     <div class="card pie-card">
-      <div class="card-title">
-        区域分布占比
+      <div class="card-title pie-title">
+        <span>区域分布占比</span>
+        <button class="legend-toggle" :class="{ active: legendExpanded }" @click="toggleLegend">
+          <span>{{ legendExpanded ? '收起' : '展开全部' }}</span>
+          <DownOutlined v-if="!legendExpanded" class="toggle-icon" />
+          <UpOutlined v-else class="toggle-icon" />
+        </button>
       </div>
       <div class="pie-content">
-        <div ref="pieChartRef" class="pie-chart"></div>
+        <div ref="pieChartRef" class="pie-chart" :style="{ height: legendCardHeight + 'px' }"></div>
       </div>
     </div>
 
@@ -148,6 +153,8 @@ import {
   ReloadOutlined,
   PhoneOutlined,
   SearchOutlined,
+  DownOutlined,
+  UpOutlined,
 } from '@ant-design/icons-vue';
 import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
@@ -195,6 +202,28 @@ const pieData = ref([]);
 const pieChartRef = ref(null);
 let pieChart = null;
 
+/* ---------------- 图例折叠开关 ---------------- */
+// 图例常驻底部；默认只展示前 N 项，点击"展开全部"展示所有图例
+const LEGEND_COLLAPSED_COUNT = 6;
+const legendExpanded = ref(false);
+const visibleLegendNames = computed(() => {
+  const names = pieData.value.map((d) => d.name);
+  return legendExpanded.value ? names : names.slice(0, LEGEND_COLLAPSED_COUNT);
+});
+// 卡片高度跟随图例行数：饼图底(230) + 固定间距(10) + 图例实际高度，保证图例贴底、底部不空
+const legendCardHeight = computed(() => {
+  const n = visibleLegendNames.value.length;
+  const rows = Math.max(1, Math.ceil(n / 3));
+  return 260 + rows * 18 + 4;
+});
+const toggleLegend = () => {
+  legendExpanded.value = !legendExpanded.value;
+  nextTick(() => {
+    renderPieChart();
+    if (pieChart) pieChart.resize();
+  });
+};
+
 const renderPieChart = () => {
   if (!pieChartRef.value) return;
   if (!pieChart) pieChart = echarts.init(pieChartRef.value);
@@ -210,6 +239,7 @@ const renderPieChart = () => {
       itemHeight: 10,
       itemGap: 12,
       textStyle: { color: '#4b5563', fontSize: 11 },
+      data: visibleLegendNames.value,
       formatter: (name) => {
         const item = pieData.value.find((d) => d.name === name);
         return `${name} ${item ? item.value : 0}人`;
@@ -218,8 +248,8 @@ const renderPieChart = () => {
     series: [
       {
         type: 'pie',
-        radius: ['15%', '60%'],
-        center: ['50%', '32%'],
+        radius: ['20px', '112px'],
+        center: ['50%', '118px'],
         startAngle: 90,
         label: { show: false },
         labelLine: { show: false },
@@ -235,6 +265,9 @@ const renderPieChart = () => {
         })),
       },
     ],
+  });
+  nextTick(() => {
+    if (pieChart) pieChart.resize();
   });
 };
 
@@ -653,7 +686,6 @@ const applyScale = () => {
   font-size: 15px;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 12px;
   display: flex;
   align-items: baseline;
   gap: 6px;
@@ -671,6 +703,39 @@ const applyScale = () => {
   position: relative;
   overflow: hidden;
   background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
+}
+
+.pie-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.legend-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(74, 141, 255, 0.1);
+  border: none;
+  border-radius: 14px;
+  color: #4a8dff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  .toggle-icon { font-size: 11px; }
+  &:hover {
+    background: rgba(74, 141, 255, 0.18);
+  }
+  &:active { transform: scale(0.95); }
+  &.active {
+    background: #4a8dff;
+    color: #fff;
+  }
 }
 
 .pie-content {
