@@ -87,10 +87,21 @@
     <!-- 人员列表 -->
     <div class="card list-card">
       <div class="card-title list-title">
-        全部人员<span class="title-count">({{ personList.length }})</span>
+        <span class="title-left">全部人员<span class="title-count">({{ filteredPersonList.length }})</span></span>
+        <a-input
+          v-model:value="keyword"
+          placeholder="搜索人员"
+          class="person-search"
+          :bordered="false"
+          :allow-clear="true"
+        >
+          <template #prefix>
+            <SearchOutlined class="search-icon" />
+          </template>
+        </a-input>
       </div>
       <div class="person-list">
-        <div class="person-item" v-for="person in personList" :key="person.id">
+        <div class="person-item" v-for="person in filteredPersonList" :key="person.id">
           <div class="person-avatar">
             <UserOutlined />
           </div>
@@ -117,8 +128,9 @@
           </div>
         </div>
         <div v-if="loading" class="empty-tip">加载中...</div>
-        <div v-else-if="personList.length === 0" class="empty-tip">
-          {{ filter.province ? '暂无数据' : '请选择省份或城市查看人员' }}
+        <div v-else-if="filteredPersonList.length === 0" class="empty-tip">
+          <template v-if="keyword">未找到匹配“{{ keyword }}”的人员</template>
+          <template v-else>{{ filter.province ? '暂无数据' : '请选择省份或城市查看人员' }}</template>
         </div>
       </div>
     </div>
@@ -135,6 +147,7 @@ import {
   CaretDownOutlined,
   ReloadOutlined,
   PhoneOutlined,
+  SearchOutlined,
 } from '@ant-design/icons-vue';
 import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
@@ -227,6 +240,15 @@ const renderPieChart = () => {
 
 /* ---------------- 人员列表（接口数据） ---------------- */
 const personList = ref([]);
+
+/* ---------------- 人员名称搜索 ---------------- */
+const keyword = ref('');
+
+const filteredPersonList = computed(() => {
+  const kw = keyword.value.trim().toLowerCase();
+  if (!kw) return personList.value;
+  return personList.value.filter((p) => (p.name || '').toLowerCase().includes(kw));
+});
 
 const mapPerson = (item, index) => {
   const code = (item.Name || '').charCodeAt(0) || 0;
@@ -666,8 +688,36 @@ const applyScale = () => {
 /* ============ 人员列表 ============ */
 .list-title {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  .title-left {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .person-search {
+    flex-shrink: 0;
+    width: 130px;
+    height: 32px;
+    background: #f0f4fa;
+    border-radius: 16px;
+
+    .search-icon { color: #9ca3af; font-size: 13px; }
+
+    :deep(.ant-input) {
+      font-size: 13px;
+      background: transparent;
+    }
+    :deep(.ant-input::placeholder) { color: #9ca3af; }
+    :deep(.ant-input-clear) {
+      color: #9ca3af;
+      background: #f0f4fa;
+      font-size: 11px;
+    }
+  }
 }
 
 .person-list { display: flex; flex-direction: column; }
