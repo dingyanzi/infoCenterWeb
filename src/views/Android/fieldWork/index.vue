@@ -230,26 +230,6 @@ const renderPieChart = () => {
       },
     ],
   });
-
-  // 核心：饼图点击联动下拉框
-  pieChart.off('click');
-  pieChart.on('click', function (params) {
-    const clickName = params.name;
-    
-    // 如果当前是选中市，点击不再往下钻
-    if (filter.city) return;
-
-    // 如果当前只有省份被选中，点击饼图则赋值给城市，并触发筛选
-    if (filter.province && !filter.city) {
-      filter.city = clickName;
-      onFilterChange();
-    } 
-    // 如果当前是未选省份，点击饼图则赋值给省份
-    else if (!filter.province) {
-      filter.province = clickName;
-      onProvinceChange(); 
-    }
-  });
 };
 
 /* ---------------- 人员列表（接口数据） ---------------- */
@@ -288,21 +268,28 @@ const loadPersons = async (addressName) => {
   }
 };
 
-/* ---------------- 根据人员列表动态生成饼图 (只展示到市) ---------------- */
+/* ---------------- 根据人员列表动态生成饼图 (展示到省/市两级) ---------------- */
 const updatePieDataByFilter = () => {
   const dataMap = {};
 
-  // 注意：因为当选中城市时我们不调用此函数，所以这里不需要判断 filter.city
-  if (filter.province) {
+  if (filter.city) {
+    // 选了市：看市内各区县分布（从人员地址提取"区/县"）
+    personList.value.forEach((p) => {
+      const addr = p.address || '';
+      const match = addr.match(/([\u4e00-\u9fa5]{1,10}?区)/) || addr.match(/([\u4e00-\u9fa5]{1,10}?县)/);
+      const key = match ? match[1] : '其他区域';
+      dataMap[key] = (dataMap[key] || 0) + 1;
+    });
+  } else if (filter.province) {
     // 只选省：看省内各市的分布
     personList.value.forEach((p) => {
       // 提取地址中的“市” (例如：杭州市余杭区 -> 匹配到杭州市)
       const match = (p.address || '').match(/([\u4e00-\u9fa5]{2,10}?市)/);
       const key = match ? match[1] : '其他区域';
-      if (key) dataMap[key] = (dataMap[key] || 0) + 1;
+      dataMap[key] = (dataMap[key] || 0) + 1;
     });
   } else {
-    // 未选省：看全国各省分布（兜底数据）
+    // 未选省：全国分布（兜底数据）
     pieData.value = DEFAULT_PIE_DATA();
     nextTick(() => renderPieChart());
     return;
@@ -315,7 +302,7 @@ const updatePieDataByFilter = () => {
     pieData.value = keys.map((key, i) => ({
       name: shortenName(key),
       value: dataMap[key],
-      color: getDistinctColor(i),
+      color: getDistinctColor(i, keys.length),
     }));
   }
   nextTick(() => renderPieChart());
@@ -333,12 +320,9 @@ const onFilterChange = async () => {
     // 根据省份或城市加载人员列表
     await loadPersons(filter.city || filter.province);
     loading.value = false;
-    
-    // 核心修改：只有当没有选中城市（仅选择了省份）时，才联动更新饼图
-    if (!filter.city) {
-      updatePieDataByFilter();
-    }
-    // 如果选中了城市，此处不执行任何更新饼图的操作，饼图保持原样！
+
+    // 选省 / 选市均联动更新饼图（省→市内城市分布，市→市内区县分布）
+    updatePieDataByFilter();
   } else {
     // 清空省份时同步清空城市，不展示人员列表
     filter.city = undefined;
@@ -377,7 +361,7 @@ const loadAddressStaticData = async () => {
       .map((item, i) => ({
         name: shortenName(item.AddressName),
         value: item.Count || 0,
-        color: getDistinctColor(i),
+        color: getDistinctColor(i, provinceList.length),
       }));
     if (pieData.value.length === 0) pieData.value = DEFAULT_PIE_DATA();
     
