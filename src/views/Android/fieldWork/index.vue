@@ -62,20 +62,6 @@
         :bordered="false"
         :allow-clear="true"
         :disabled="!filter.province"
-        @change="onCityChange"
-      >
-        <template #suffixIcon>
-          <CaretDownOutlined class="caret-icon" />
-        </template>
-      </a-select>
-      <a-select
-        v-model:value="filter.district"
-        :options="districtOptions"
-        placeholder="区"
-        class="filter-select"
-        :bordered="false"
-        :allow-clear="true"
-        :disabled="!filter.city"
         @change="onFilterChange"
       >
         <template #suffixIcon>
@@ -153,7 +139,6 @@ import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
 import { GetAddressStaticDataApi, GetPersonByAddressName } from '/@/api/system/home-view';
 import { PROVINCE_CITY } from '/@/components/framework/area-cascader/province-city';
-import { PROVINCE_CITY_DISTRICT } from '/@/components/framework/area-cascader/province-city-district';
 
 const router = useRouter();
 
@@ -169,7 +154,6 @@ const loading = ref(false);
 const filter = reactive({
   province: undefined,
   city: undefined,
-  district: undefined,
 });
 
 /* ---------------- 省份（接口数据）/ 城市（行政区划插件数据） ---------------- */
@@ -183,17 +167,6 @@ const cityOptions = computed(() => {
     const label = c.label.endsWith('市') ? c.label : `${c.label}市`;
     return { value: label, label };
   });
-});
-
-// 区下拉：根据所选省/市，从省市区插件 PROVINCE_CITY_DISTRICT 中取对应区的 children
-const districtOptions = computed(() => {
-  if (!filter.province || !filter.city) return [];
-  const province = PROVINCE_CITY_DISTRICT.find((p) => p.label === filter.province);
-  if (!province || !Array.isArray(province.children)) return [];
-  // PROVINCE_CITY_DISTRICT 市级 label 带"市"后缀（如"杭州市"），与已选城市直接匹配
-  const city = province.children.find((c) => c.label === filter.city);
-  if (!city || !Array.isArray(city.children)) return [];
-  return city.children.map((d) => ({ value: d.label, label: d.label }));
 });
 
 /* ---------------- 饼图数据和颜色 ---------------- */
@@ -295,13 +268,7 @@ const loadPersons = async (addressName) => {
 const updatePieDataByFilter = () => {
   const dataMap = {};
 
-  if (filter.district) {
-    // 选了区：看区内人员部门分布
-    personList.value.forEach((p) => {
-      const key = p.department || '其他';
-      dataMap[key] = (dataMap[key] || 0) + 1;
-    });
-  } else if (filter.city) {
+  if (filter.city) {
     // 选了市：看市内各区县分布（从人员地址提取"区/县"）
     personList.value.forEach((p) => {
       const addr = p.address || '';
@@ -338,32 +305,24 @@ const updatePieDataByFilter = () => {
 };
 
 /* ---------------- 筛选联动 ---------------- */
-// 省份切换时清空已选城市和区
+// 省份切换时清空已选城市
 const onProvinceChange = () => {
   filter.city = undefined;
-  filter.district = undefined;
-  onFilterChange();
-};
-
-// 城市切换时清空已选区
-const onCityChange = () => {
-  filter.district = undefined;
   onFilterChange();
 };
 
 const onFilterChange = async () => {
   if (filter.province) {
     loading.value = true;
-    // 按 区/市/省 优先级加载人员列表
-    await loadPersons(filter.district || filter.city || filter.province);
+    // 按 市/省 优先级加载人员列表
+    await loadPersons(filter.city || filter.province);
     loading.value = false;
 
-    // 选省 / 选市 / 选区均联动更新饼图
+    // 选省 / 选市均联动更新饼图
     updatePieDataByFilter();
   } else {
-    // 清空省份时同步清空城市和区，不展示人员列表
+    // 清空省份时同步清空城市，不展示人员列表
     filter.city = undefined;
-    filter.district = undefined;
     personList.value = [];
     // 恢复默认饼图
     pieData.value = [];
@@ -375,7 +334,6 @@ const onFilterChange = async () => {
 const resetFilter = () => {
   filter.province = undefined;
   filter.city = undefined;
-  filter.district = undefined;
   personList.value = [];
   // 重新请求初始接口，恢复真实数据
   loadAddressStaticData(); 
@@ -393,12 +351,12 @@ const loadAddressStaticData = async () => {
     const provinceList = provinceArr.filter((item) => item.AddressName);
     provinceOptions.value = provinceList.map((item) => ({ value: item.AddressName, label: item.AddressName }));
 
-    // 默认加载全国饼图
+    // 默认加载全国饼图（图例省份名保留完整名称，如"江苏省"）
     pieData.value = provinceList
       .slice()
       .sort((a, b) => (b.Count || 0) - (a.Count || 0))
       .map((item, i) => ({
-        name: shortenName(item.AddressName),
+        name: item.AddressName,
         value: item.Count || 0,
         color: getDistinctColor(i, provinceList.length),
       }));
