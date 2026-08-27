@@ -47,6 +47,7 @@
         placeholder="省份"
         class="filter-select"
         :bordered="false"
+        :allow-clear="true"
         :show-arrow="true"
         @change="onProvinceChange"
       >
@@ -177,10 +178,6 @@ const getDistinctColor = (index) => {
   return BLUE_PALETTE[index % BLUE_PALETTE.length];
 };
 
-const shortenName = (name) => {
-  return String(name || '').replace(/省|市|特别行政区|壮族自治区|回族自治区|维吾尔自治区|自治区|壮族|回族|维吾尔/g, '');
-};
-
 const pieData = ref([]);
 const pieChartRef = ref(null);
 let pieChart = null;
@@ -267,19 +264,27 @@ const loadPersons = async (addressName) => {
 const updatePieDataByFilter = () => {
   const dataMap = {};
 
+  // 从地址中去除省份前缀（如"浙江省杭州市" → "杭州市"），保证图例只展示市/区名
+  const stripProvince = (addr) => {
+    if (filter.province && addr.startsWith(filter.province)) {
+      return addr.slice(filter.province.length);
+    }
+    return addr;
+  };
+
   if (filter.city) {
     // 选了市：看市内各区县分布（从人员地址提取"区/县"）
     personList.value.forEach((p) => {
-      const addr = p.address || '';
+      const addr = stripProvince(p.address || '');
       const match = addr.match(/([\u4e00-\u9fa5]{1,10}?区)/) || addr.match(/([\u4e00-\u9fa5]{1,10}?县)/);
       const key = match ? match[1] : '其他区域';
       dataMap[key] = (dataMap[key] || 0) + 1;
     });
   } else if (filter.province) {
-    // 只选省：看省内各市的分布
+    // 只选省：看省内各市的分布（例如：杭州市余杭区 -> 匹配到杭州市）
     personList.value.forEach((p) => {
-      // 提取地址中的“市” (例如：杭州市余杭区 -> 匹配到杭州市)
-      const match = (p.address || '').match(/([\u4e00-\u9fa5]{2,10}?市)/);
+      const addr = stripProvince(p.address || '');
+      const match = addr.match(/([\u4e00-\u9fa5]{2,10}?市)/);
       const key = match ? match[1] : '其他区域';
       dataMap[key] = (dataMap[key] || 0) + 1;
     });
@@ -295,7 +300,8 @@ const updatePieDataByFilter = () => {
     pieData.value = [];
   } else {
     pieData.value = keys.map((key, i) => ({
-      name: shortenName(key),
+      // 直接使用提取的市/区名（如"杭州市"/"余杭区"），不带省前缀
+      name: key,
       value: dataMap[key],
       color: getDistinctColor(i, keys.length),
     }));
@@ -334,8 +340,8 @@ const resetFilter = () => {
   filter.province = undefined;
   filter.city = undefined;
   personList.value = [];
-  // 重新请求初始接口，恢复真实数据
   loadAddressStaticData(); 
+  loadPersons();
 };
 
 /* ---------------- 初始加载 ---------------- */
