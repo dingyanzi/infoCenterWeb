@@ -6,7 +6,7 @@
   "scripts": {
     "localhost": "vite --mode localhost",
     "dev": "vite",
-    "build:test": "vite build  --base=/admin/ --mode test",
+    "build:test": "vite build  --mode test",
     "build:prod": "vite build  --mode production"
   },
   "type": "module",
