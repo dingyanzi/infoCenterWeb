@@ -92,6 +92,20 @@
     <div class="card list-card">
       <div class="card-title list-title">
         <span class="title-left">全部人员<span class="title-count">({{ filteredPersonList.length }})</span></span>
+        <a-select
+          v-model:value="departmentFilter"
+          :options="departmentOptions"
+          placeholder="部门"
+          class="dept-select"
+          :bordered="false"
+          :allow-clear="true"
+        >
+          <template #suffixIcon>
+            <CaretDownOutlined class="caret-icon" />
+          </template>
+        </a-select>
+      </div>
+      <div class="search-row">
         <a-input
           v-model:value="keyword"
           placeholder="搜索人员"
@@ -133,7 +147,7 @@
         </div>
         <div v-if="loading" class="empty-tip">加载中...</div>
         <div v-else-if="filteredPersonList.length === 0" class="empty-tip">
-          <template v-if="keyword">未找到匹配“{{ keyword }}”的人员</template>
+          <template v-if="keyword || departmentFilter">未找到匹配的人员</template>
           <template v-else>{{ filter.province ? '暂无数据' : '请选择省份或城市查看人员' }}</template>
         </div>
       </div>
@@ -278,13 +292,29 @@ const renderPieChart = () => {
 /* ---------------- 人员列表（接口数据） ---------------- */
 const personList = ref([]);
 
-/* ---------------- 人员名称搜索 ---------------- */
+/* ---------------- 人员搜索（名称 + 部门） ---------------- */
 const keyword = ref('');
+const departmentFilter = ref(undefined);
+
+// 部门下拉选项：从当前人员列表去重（已处理成末级部门名，如"生产部"）
+const departmentOptions = computed(() => {
+  const set = new Set();
+  personList.value.forEach((p) => {
+    if (p.department && p.department !== '-') set.add(p.department);
+  });
+  return Array.from(set)
+    .sort()
+    .map((d) => ({ value: d, label: d }));
+});
 
 const filteredPersonList = computed(() => {
   const kw = keyword.value.trim().toLowerCase();
-  if (!kw) return personList.value;
-  return personList.value.filter((p) => (p.name || '').toLowerCase().includes(kw));
+  const dept = departmentFilter.value;
+  return personList.value.filter((p) => {
+    const matchName = !kw || (p.name || '').toLowerCase().includes(kw);
+    const matchDept = !dept || p.department === dept;
+    return matchName && matchDept;
+  });
 });
 
 const mapPerson = (item, index) => {
@@ -380,6 +410,8 @@ const onFilterChange = async () => {
     // 按 市/省 优先级加载人员列表
     await loadPersons(filter.city || filter.province);
     loading.value = false;
+    // 切换省/市后部门选项会变，清空已选部门避免匹配不到
+    departmentFilter.value = undefined;
 
     // 选省 / 选市均联动更新饼图
     updatePieDataByFilter();
@@ -393,6 +425,8 @@ const onFilterChange = async () => {
 const resetFilter = () => {
   filter.province = undefined;
   filter.city = undefined;
+  departmentFilter.value = undefined;
+  keyword.value = '';
   personList.value = [];
   loadAddressStaticData(); 
   loadPersons();
