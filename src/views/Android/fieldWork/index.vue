@@ -222,6 +222,8 @@ const toggleLegend = () => {
     }
     // 显隐改变卡片高度，主动重算缩放与外层高度，保证滚动范围与内容一致
     applyScale();
+    // 强制重排重绘，规避移动端 transform:scale 下卡片背景不随高度刷新（底部断层）
+    if (pageRef.value) void pageRef.value.offsetHeight;
   });
 };
 

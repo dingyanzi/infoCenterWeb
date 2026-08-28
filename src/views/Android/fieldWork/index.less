@@ -14,6 +14,7 @@
   padding-bottom: 40px;
   margin: 0 auto;
   transform-origin: top center;
+  will-change: transform;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
   color: #1f2937;
 }
@@ -221,10 +222,26 @@
 .pie-card {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
+  background: #ffffff;
+  // 提升为独立合成层，规避移动端 transform:scale 下背景不随高度重绘
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+
+  // 渐变背景独立合成层：避免移动端 transform:scale 下卡片动态变高时背景不重绘（底部断层）
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
+    pointer-events: none;
+  }
 }
 
 .pie-title {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
