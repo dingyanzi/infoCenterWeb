@@ -74,17 +74,17 @@
       </button>
     </div>
 
-    <!-- 区域分布占比 饼图 -->
+    <!-- 区域分布占比 饼图（可整体收起/展开） -->
     <div class="card pie-card">
       <div class="card-title pie-title">
         <span>区域分布占比</span>
-        <button class="legend-toggle" :class="{ active: legendExpanded }" @click="toggleLegend">
-          <span>{{ legendExpanded ? '收起' : '展开全部' }}</span>
-          <DownOutlined v-if="!legendExpanded" class="toggle-icon" />
-          <UpOutlined v-else class="toggle-icon" />
+        <button class="legend-toggle" :class="{ active: pieVisible }" @click="toggleLegend">
+          <span>{{ pieVisible ? '收起' : '展开' }}</span>
+          <UpOutlined v-if="pieVisible" class="toggle-icon" />
+          <DownOutlined v-else class="toggle-icon" />
         </button>
       </div>
-      <div class="pie-content">
+      <div v-show="pieVisible" class="pie-content">
         <div ref="pieChartRef" class="pie-chart" :style="{ height: legendCardHeight + 'px' }"></div>
       </div>
     </div>
@@ -202,14 +202,10 @@ const pieData = ref([]);
 const pieChartRef = ref(null);
 let pieChart = null;
 
-/* ---------------- 图例折叠开关 ---------------- */
-// 图例常驻底部；默认只展示前 N 项，点击"展开全部"展示所有图例
-const LEGEND_COLLAPSED_COUNT = 6;
-const legendExpanded = ref(false);
-const visibleLegendNames = computed(() => {
-  const names = pieData.value.map((d) => d.name);
-  return legendExpanded.value ? names : names.slice(0, LEGEND_COLLAPSED_COUNT);
-});
+/* ---------------- 饼图整体显示/隐藏 ---------------- */
+// 点击标题右侧按钮：整个饼图（含图例）展开或收起
+const pieVisible = ref(true);
+const visibleLegendNames = computed(() => pieData.value.map((d) => d.name));
 // 卡片高度跟随图例行数：饼图底(230) + 固定间距(10) + 图例实际高度，保证图例贴底、底部不空
 const legendCardHeight = computed(() => {
   const n = visibleLegendNames.value.length;
@@ -217,10 +213,15 @@ const legendCardHeight = computed(() => {
   return 260 + rows * 18 + 4;
 });
 const toggleLegend = () => {
-  legendExpanded.value = !legendExpanded.value;
+  pieVisible.value = !pieVisible.value;
   nextTick(() => {
-    renderPieChart();
-    if (pieChart) pieChart.resize();
+    // 重新显示时图表容器恢复尺寸，需重绘并 resize，否则图表会空白/错位
+    if (pieVisible.value) {
+      renderPieChart();
+      if (pieChart) pieChart.resize();
+    }
+    // 显隐改变卡片高度，主动重算缩放与外层高度，保证滚动范围与内容一致
+    applyScale();
   });
 };
 
@@ -450,11 +451,15 @@ onMounted(async () => {
   // 手机端等比缩放适配
   applyScale();
   window.addEventListener('resize', applyScale);
+  // 内容动态变化（展开图例 / 加载人员等）时自动重算缩放与高度，避免滚动错位
+  scaleObserver = new ResizeObserver(() => applyScale());
+  if (pageRef.value) scaleObserver.observe(pageRef.value);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
   window.removeEventListener('resize', applyScale);
+  if (scaleObserver) scaleObserver.disconnect();
   if (pieChart) {
     pieChart.dispose();
     pieChart = null;
@@ -475,15 +480,23 @@ const pageRef = ref(null);
 const applyScale = () => {
   const el = pageRef.value;
   if (!el) return;
-  const vw = document.documentElement.clientWidth || window.innerWidth;
+  // 用 innerWidth 而非 clientWidth：垂直滚动条出现会挤占 clientWidth，导致 scale 抖动
+  const vw = window.innerWidth;
   // 手机端等比缩放；超过 480px（如 PC 预览）时锁定上限，保持居中
   const scale = Math.min(vw / DESIGN_WIDTH, MAX_WIDTH / DESIGN_WIDTH);
+  // 以顶部为缩放基准，保证视觉顶部与容器顶部对齐
+  el.style.transformOrigin = 'top center';
   el.style.transform = `scale(${scale})`;
-  // 外层高度补偿，保证缩放后内容可正常滚动
+  // 关键：transform 只改“视觉大小”，不改“布局占位高度”。若只压外层高度，子元素仍按
+  // 原始高度 H 占位，会导致滚动范围与看到的内容错位（滚不到底/顶）。用负 margin 把多出的
+  // 占位收回，使外层高度刚好等于缩放后视觉高度，滚动范围与视觉一致。
+  el.style.marginBottom = `-${el.offsetHeight * (1 - scale)}px`;
   if (el.parentElement) {
     el.parentElement.style.height = `${el.offsetHeight * scale}px`;
   }
 };
+
+let scaleObserver = null;
 </script>
 
 <style lang="less" scoped>
