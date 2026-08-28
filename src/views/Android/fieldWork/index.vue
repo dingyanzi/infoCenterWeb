@@ -92,6 +92,12 @@
     <div class="card list-card">
       <div class="card-title list-title">
         <span class="title-left">全部人员<span class="title-count">({{ filteredPersonList.length }})</span></span>
+        <div class="region-chip" v-if="pieRegionFilter">
+          <span class="region-chip-text">区域：{{ pieRegionFilter }}</span>
+          <CloseOutlined class="region-chip-close" @click="clearRegionFilter" />
+        </div>
+      </div>
+      <div class="dept-search-row">
         <a-select
           v-model:value="departmentFilter"
           :options="departmentOptions"
@@ -104,19 +110,19 @@
             <CaretDownOutlined class="caret-icon" />
           </template>
         </a-select>
-      </div>
-      <div class="search-row">
-        <a-input
-          v-model:value="keyword"
-          placeholder="搜索人员"
-          class="person-search"
-          :bordered="false"
-          :allow-clear="true"
-        >
-          <template #prefix>
-            <SearchOutlined class="search-icon" />
-          </template>
-        </a-input>
+        <div class="search-row">
+          <a-input
+            v-model:value="keyword"
+            placeholder="搜索人员"
+            class="person-search"
+            :bordered="false"
+            :allow-clear="true"
+          >
+            <template #prefix>
+              <SearchOutlined class="search-icon" />
+            </template>
+          </a-input>
+        </div>
       </div>
       <div class="person-list">
         <div class="person-item" v-for="person in filteredPersonList" :key="person.id">
@@ -168,6 +174,7 @@ import {
   SearchOutlined,
   DownOutlined,
   UpOutlined,
+  CloseOutlined,
 } from '@ant-design/icons-vue';
 import * as echarts from 'echarts';
 import { useRouter } from 'vue-router';
@@ -215,6 +222,14 @@ const pieData = ref([]);
 const pieChartRef = ref(null);
 let pieChart = null;
 
+// 点击饼图扇区后的区域筛选（对应人员 simpleDetail 里包含的区域名，如"江苏省"/"杭州市"）
+const pieRegionFilter = ref(undefined);
+const clearRegionFilter = () => {
+  pieRegionFilter.value = undefined;
+  // 同步取消饼图高亮
+  if (pieChart) pieChart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+};
+
 /* ---------------- 饼图整体显示/隐藏 ---------------- */
 // 点击标题右侧按钮：整个饼图（含图例）展开或收起
 const pieVisible = ref(true);
@@ -243,7 +258,21 @@ const toggleLegend = () => {
 
 const renderPieChart = () => {
   if (!pieChartRef.value) return;
-  if (!pieChart) pieChart = echarts.init(pieChartRef.value);
+  if (!pieChart) {
+    pieChart = echarts.init(pieChartRef.value);
+    // 点击扇区：按区域筛选下方人员列表；再点同一扇区取消筛选
+    pieChart.on('click', (params) => {
+      const name = params && params.name;
+      if (!name) return;
+      if (pieRegionFilter.value === name) {
+        clearRegionFilter();
+      } else {
+        pieRegionFilter.value = name;
+      }
+      // 重绘以刷新图例文字（选中项数值放大）与扇区高亮
+      renderPieChart();
+    });
+  }
   
   pieChart.setOption({
     tooltip: { trigger: 'item', show: false },
@@ -256,11 +285,26 @@ const renderPieChart = () => {
       itemHeight: 10,
       itemGap: 12,
       lineHeight: 22,
-      textStyle: { color: '#4b5563', fontSize: 11 },
+      textStyle: {
+        color: '#4b5563',
+        fontSize: 11,
+        rich: {
+          big: {
+            fontSize: 16,
+            fontWeight: 800,
+            color: '#2e6cf3',
+          },
+        },
+      },
       data: visibleLegendNames.value,
       formatter: (name) => {
         const item = pieData.value.find((d) => d.name === name);
-        return `${name} ${item ? item.value : 0}人`;
+        const val = item ? item.value : 0;
+        // 选中的扇区：对应图例的数值放大、加粗、高亮
+        if (name === pieRegionFilter.value) {
+          return `${name} {big|${val}人}`;
+        }
+        return `${name} ${val}人`;
       },
     },
     series: [
@@ -285,7 +329,13 @@ const renderPieChart = () => {
     ],
   });
   nextTick(() => {
-    if (pieChart) pieChart.resize();
+    if (pieChart) {
+      pieChart.resize();
+      // 重新渲染后恢复当前选中扇区的高亮
+      if (pieRegionFilter.value) {
+        pieChart.dispatchAction({ type: 'highlight', seriesIndex: 0, name: pieRegionFilter.value });
+      }
+    }
   });
 };
 
@@ -310,10 +360,12 @@ const departmentOptions = computed(() => {
 const filteredPersonList = computed(() => {
   const kw = keyword.value.trim().toLowerCase();
   const dept = departmentFilter.value;
+  const region = pieRegionFilter.value;
   return personList.value.filter((p) => {
     const matchName = !kw || (p.name || '').toLowerCase().includes(kw);
     const matchDept = !dept || p.department === dept;
-    return matchName && matchDept;
+    const matchRegion = !region || (p.simpleDetail || '').includes(region);
+    return matchName && matchDept && matchRegion;
   });
 });
 
@@ -412,6 +464,8 @@ const onFilterChange = async () => {
     loading.value = false;
     // 切换省/市后部门选项会变，清空已选部门避免匹配不到
     departmentFilter.value = undefined;
+    // 切换省/市后清空饼图区域筛选，避免旧区域名匹配不到新列表
+    clearRegionFilter();
 
     // 选省 / 选市均联动更新饼图
     updatePieDataByFilter();
@@ -427,6 +481,7 @@ const resetFilter = () => {
   filter.city = undefined;
   departmentFilter.value = undefined;
   keyword.value = '';
+  clearRegionFilter();
   personList.value = [];
   loadAddressStaticData(); 
   loadPersons();
