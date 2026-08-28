@@ -381,10 +381,8 @@ const onFilterChange = async () => {
     // 选省 / 选市均联动更新饼图
     updatePieDataByFilter();
   } else {
-    // 清空省份：同步清空城市，不展示人员列表，并恢复默认全国饼图
-    filter.city = undefined;
-    personList.value = [];
-    loadAddressStaticData();
+    // 清空省份：回到全国默认状态（恢复全国饼图/统计，并加载全国全部人员列表）
+    resetFilter();
   }
 };
 
