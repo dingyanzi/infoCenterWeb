@@ -291,6 +291,7 @@ const mapPerson = (item, index) => {
     department: (item.Department || '-').split('\\').pop(),
     position: item.JobTitle || '-',
     address: item.PositionDetail || item.AttendenceRemark || '-',
+    simpleDetail: item.SimpleDetail || '',
     phone: item.Phone || '-',
   };
 };
@@ -319,28 +320,26 @@ const loadPersons = async (addressName) => {
 const updatePieDataByFilter = () => {
   const dataMap = {};
 
-  // 从地址中去除省份前缀（如"浙江省杭州市" → "杭州市"），保证图例只展示市/区名
-  const stripProvince = (addr) => {
-    if (filter.province && addr.startsWith(filter.province)) {
-      return addr.slice(filter.province.length);
-    }
-    return addr;
-  };
-
   if (filter.city) {
-    // 选了市：看市内各区县分布（从人员地址提取"区/县"）
+    // 选了市：看市内各区县分布 —— 用 SimpleDetail 去掉 省+市 前缀后的剩余部分（如"湖南省永州市祁阳市"→"祁阳市"）
     personList.value.forEach((p) => {
-      const addr = stripProvince(p.address || '');
-      const match = addr.match(/([\u4e00-\u9fa5]{1,10}?区)/) || addr.match(/([\u4e00-\u9fa5]{1,10}?县)/);
-      const key = match ? match[1] : '其他区域';
+      const detail = p.simpleDetail || '';
+      if (!detail) return;
+      let rest = detail;
+      if (filter.province && rest.startsWith(filter.province)) rest = rest.slice(filter.province.length);
+      if (filter.city && rest.startsWith(filter.city)) rest = rest.slice(filter.city.length);
+      const key = rest || '其他区域';
       dataMap[key] = (dataMap[key] || 0) + 1;
     });
   } else if (filter.province) {
-    // 只选省：看省内各市的分布（例如：杭州市余杭区 -> 匹配到杭州市）
+    // 只选省：看省内各市的分布 —— 用 SimpleDetail 去掉省前缀后取"市"段（如"湖南省永州市祁阳市"→"永州市"）
     personList.value.forEach((p) => {
-      const addr = stripProvince(p.address || '');
-      const match = addr.match(/([\u4e00-\u9fa5]{2,10}?市)/);
-      const key = match ? match[1] : '其他区域';
+      const detail = p.simpleDetail || '';
+      if (!detail) return;
+      let rest = detail;
+      if (filter.province && rest.startsWith(filter.province)) rest = rest.slice(filter.province.length);
+      const match = rest.match(/^([\u4e00-\u9fa5]{2,10}?市)/);
+      const key = match ? match[1] : (rest || '其他区域');
       dataMap[key] = (dataMap[key] || 0) + 1;
     });
   } else {
@@ -381,12 +380,10 @@ const onFilterChange = async () => {
     // 选省 / 选市均联动更新饼图
     updatePieDataByFilter();
   } else {
-    // 清空省份时同步清空城市，不展示人员列表
+    // 清空省份：同步清空城市，不展示人员列表，并恢复默认全国饼图
     filter.city = undefined;
     personList.value = [];
-    // 恢复默认饼图
-    pieData.value = [];
-    nextTick(() => renderPieChart());
+    loadAddressStaticData();
   }
 };
 
@@ -490,422 +487,5 @@ const applyScale = () => {
 </script>
 
 <style lang="less" scoped>
-/* 外层容器：承载缩放后的页面，高度由 JS applyScale 动态补偿 */
-.phone-wrapper {
-  width: 100%;
-  min-height: 100vh;
-  background: #f0f4fa;
-  overflow-x: hidden;
-}
-
-.field-work-page {
-  /* 375 设计稿固定宽度，由 JS applyScale 整体等比缩放（手机端自适应） */
-  width: 375px;
-  min-height: 100vh;
-  background: #f0f4fa;
-  padding-bottom: 40px;
-  margin: 0 auto;
-  transform-origin: top center;
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
-  color: #1f2937;
-}
-
-/* ============ 顶部蓝色 header ============ */
-.header-wrap {
-  position: relative;
-  background: linear-gradient(180deg, #4a8dff 0%, #2e6cf3 100%);
-  padding-bottom: 60px;
-  border-radius: 0 0 24px 24px;
-  box-shadow: 0 6px 20px rgba(46, 108, 243, 0.18);
-  color: #fff;
-}
-
-.page-header {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  position: relative;
-
-  .back-btn {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background 0.2s;
-
-    &:hover { background: rgba(255, 255, 255, 0.12); }
-    &.placeholder { visibility: hidden; }
-  }
-
-  .page-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: #fff;
-  }
-}
-
-/* ============ 统计卡片 ============ */
-.stats-cards {
-  position: relative;
-  z-index: 2;
-  margin: -35px 16px 0;
-  display: flex;
-  gap: 12px;
-}
-
-.stat-card {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 14px;
-  padding: 16px 14px 18px;
-  box-shadow: 0 6px 18px rgba(46, 108, 243, 0.08);
-  color: #1f2937;
-
-  .stat-label {
-    font-size: 13px;
-    color: #6b7280;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-  }
-
-  .stat-value {
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    .value-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 38px;
-      height: 38px;
-      flex-shrink: 0;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #4a8dff, #2e6cf3);
-      color: #fff;
-      font-size: 18px;
-      box-shadow: 0 4px 12px rgba(46, 108, 243, 0.3);
-    }
-    .number {
-      font-size: 30px;
-      font-weight: 800;
-      line-height: 1;
-      font-family: 'DIN Alternate', -apple-system, sans-serif;
-      background: linear-gradient(135deg, #3b82f6, #2e6cf3);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: #2e6cf3;
-    }
-    .unit {
-      font-size: 12px;
-      color: #9aa4b2;
-      align-self: flex-end;
-      margin-bottom: 2px;
-    }
-  }
-}
-
-/* ============ 筛选下拉 ============ */
-.filter-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 16px 14px;
-}
-
-.reset-btn {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: none;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  color: #4a8dff;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #4a8dff;
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(74, 141, 255, 0.35);
-  }
-  &:active { transform: scale(0.92); }
-}
-
-.filter-select {
-  flex: 1;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-
-  :deep(.ant-select-selector) {
-    height: 40px !important;
-    padding: 0 12px !important;
-    border: none !important;
-    box-shadow: none !important;
-    background: transparent !important;
-  }
-  :deep(.ant-select-selection-placeholder) {
-    color: #9ca3af;
-    font-size: 14px;
-    line-height: 40px !important;
-    text-align: center;
-  }
-  :deep(.ant-select-selection-item) {
-    line-height: 40px !important;
-    text-align: center;
-    font-size: 14px;
-    color: #4a8dff;
-    font-weight: 500;
-  }
-  :deep(.ant-select-arrow) {
-    color: #9ca3af;
-    font-size: 12px;
-  }
-  :deep(.ant-select-clear) {
-    color: #9ca3af;
-    font-size: 12px;
-    right: 10px;
-    background: #fff;
-    border-radius: 50%;
-
-    &:hover { color: #4a8dff; }
-  }
-  :deep(.caret-icon) { color: #9ca3af; font-size: 12px; }
-  &.ant-select-disabled { opacity: 0.55; }
-}
-
-/* ============ 通用卡片 ============ */
-.card {
-  margin: 0 16px 14px;
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-}
-
-.card-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1f2937;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-
-  .title-count {
-    font-weight: 500;
-    color: #6b7280;
-    font-size: 13px;
-    margin-left: 2px;
-  }
-}
-
-/* ============ 饼图卡片 ============ */
-.pie-card {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
-}
-
-.pie-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.legend-toggle {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: rgba(74, 141, 255, 0.1);
-  border: none;
-  border-radius: 14px;
-  color: #4a8dff;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  .toggle-icon { font-size: 11px; }
-  &:hover {
-    background: rgba(74, 141, 255, 0.18);
-  }
-  &:active { transform: scale(0.95); }
-  &.active {
-    background: #4a8dff;
-    color: #fff;
-  }
-}
-
-.pie-content {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  z-index: 1;
-}
-
-.pie-chart {
-  width: 100%;
-  height: 280px;
-}
-
-/* ============ 人员列表 ============ */
-.list-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-
-  .title-left {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-  }
-
-  .person-search {
-    flex-shrink: 0;
-    width: 130px;
-    height: 32px;
-    background: #f0f4fa;
-    border-radius: 16px;
-
-    .search-icon { color: #9ca3af; font-size: 13px; }
-
-    :deep(.ant-input) {
-      font-size: 13px;
-      background: transparent;
-    }
-    :deep(.ant-input::placeholder) { color: #9ca3af; }
-    :deep(.ant-input-clear) {
-      color: #9ca3af;
-      background: #f0f4fa;
-      font-size: 11px;
-    }
-  }
-}
-
-.person-list { display: flex; flex-direction: column; }
-
-.person-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid #f0f3f8;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:last-child { border-bottom: none; }
-  &:hover {
-    background: #f9fbff;
-    margin: 0 -10px;
-    padding: 14px 10px;
-    border-radius: 10px;
-  }
-}
-
-.person-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 20px;
-  flex-shrink: 0;
-  background: #4a8dff;
-}
-
-.person-info { flex: 1; min-width: 0; }
-
-.person-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 4px;
-}
-
-.person-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.6;
-
-  .person-field { white-space: nowrap; }
-
-  // 地址单独一行，完整展示可换行
-  &.address-row {
-    .person-field {
-      white-space: normal;
-      word-break: break-all;
-      line-height: 1.5;
-      max-width: 100%;
-    }
-  }
-
-  // 拨打电话图标按钮
-  &.phone-row {
-    gap: 8px;
-
-    .call-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(74, 141, 255, 0.12);
-      color: #4a8dff;
-      font-size: 12px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.2s;
-
-      &:hover {
-        background: #4a8dff;
-        color: #fff;
-      }
-
-      &:active {
-        transform: scale(0.9);
-      }
-    }
-  }
-}
-
-.empty-tip {
-  text-align: center;
-  font-size: 13px;
-  color: #9ca3af;
-  padding: 40px 0;
-}
+@import './index.less';
 </style>
