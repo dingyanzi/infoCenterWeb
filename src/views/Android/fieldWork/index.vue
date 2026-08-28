@@ -10,8 +10,7 @@
     <div class="header-wrap">
       <!-- 顶部标题 -->
       <div class="page-header">
-        <div class="page-title">锋馥外勤调度中心</div>
-        <div class="back-btn placeholder"></div>
+        <div class="page-title">锋馥外勤调度指挥中心</div>
       </div>
     </div>
 
@@ -74,10 +73,10 @@
       </button>
     </div>
 
-    <!-- 区域分布占比 饼图（可整体收起/展开） -->
+    <!-- 外勤人员分布 -->
     <div class="card pie-card">
       <div class="card-title pie-title">
-        <span>区域分布占比</span>
+        <span>外勤人员分布</span>
         <button class="legend-toggle" :class="{ active: pieVisible }" @click="toggleLegend">
           <span>{{ pieVisible ? '收起' : '展开' }}</span>
           <UpOutlined v-if="pieVisible" class="toggle-icon" />
@@ -206,11 +205,12 @@ let pieChart = null;
 // 点击标题右侧按钮：整个饼图（含图例）展开或收起
 const pieVisible = ref(true);
 const visibleLegendNames = computed(() => pieData.value.map((d) => d.name));
-// 卡片高度跟随图例行数：饼图底(230) + 固定间距(10) + 图例实际高度，保证图例贴底、底部不空
+// 卡片高度跟随图例行数：图例从饼图下方 224px 开始往下排，紧贴饼图、底部不留空
+// legend 已固定 lineHeight:22，单行精确 22px，加缓冲避免末排被裁
 const legendCardHeight = computed(() => {
   const n = visibleLegendNames.value.length;
   const rows = Math.max(1, Math.ceil(n / 3));
-  return 260 + rows * 18 + 4;
+  return 224 + rows * 22 + 8;
 });
 const toggleLegend = () => {
   pieVisible.value = !pieVisible.value;
@@ -233,12 +233,13 @@ const renderPieChart = () => {
     tooltip: { trigger: 'item', show: false },
     legend: {
       orient: 'horizontal',
-      bottom: 0,
+      top: '224px',
       left: 'center',
       icon: 'circle',
       itemWidth: 10,
       itemHeight: 10,
       itemGap: 12,
+      lineHeight: 22,
       textStyle: { color: '#4b5563', fontSize: 11 },
       data: visibleLegendNames.value,
       formatter: (name) => {
@@ -249,7 +250,7 @@ const renderPieChart = () => {
     series: [
       {
         type: 'pie',
-        radius: ['20px', '112px'],
+        radius: ['20px', '95px'],
         center: ['50%', '118px'],
         startAngle: 90,
         label: { show: false },
@@ -381,7 +382,7 @@ const onFilterChange = async () => {
     // 选省 / 选市均联动更新饼图
     updatePieDataByFilter();
   } else {
-    // 清空省份：回到全国默认状态（恢复全国饼图/统计，并加载全国全部人员列表）
+    // 清空省份：恢复全国默认数据（全国饼图 + 全国全部人员列表）
     resetFilter();
   }
 };

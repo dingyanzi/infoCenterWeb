@@ -21,7 +21,7 @@
 /* ============ 顶部蓝色 header ============ */
 .header-wrap {
   position: relative;
-  background: linear-gradient(180deg, #4a8dff 0%, #2e6cf3 100%);
+  background: linear-gradient(180deg, #639bfc 0%, #2e6cf3 100%);
   padding-bottom: 60px;
   border-radius: 0 0 24px 24px;
   box-shadow: 0 6px 20px rgba(46, 108, 243, 0.18);
@@ -29,33 +29,19 @@
 }
 
 .page-header {
-  height: 48px;
+  height: 58px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   position: relative;
 
-  .back-btn {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background 0.2s;
-
-    &:hover { background: rgba(255, 255, 255, 0.12); }
-    &.placeholder { visibility: hidden; }
-  }
-
   .page-title {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    text-align: center;
+    width: 100%;
     font-size: 20px;
     font-weight: 600;
     letter-spacing: 1px;
@@ -67,7 +53,7 @@
 .stats-cards {
   position: relative;
   z-index: 2;
-  margin: -35px 16px 0;
+  margin: -50px 16px 0;
   display: flex;
   gap: 12px;
 }
@@ -105,7 +91,7 @@
       width: 38px;
       height: 38px;
       flex-shrink: 0;
-      border-radius: 12px;
+      border-radius: 30px;
       background: linear-gradient(135deg, #4a8dff, #2e6cf3);
       color: #fff;
       font-size: 18px;
@@ -330,12 +316,6 @@
   transition: background 0.2s;
 
   &:last-child { border-bottom: none; }
-  &:hover {
-    background: #f9fbff;
-    margin: 0 -10px;
-    padding: 14px 10px;
-    border-radius: 10px;
-  }
 }
 
 .person-avatar {
@@ -345,10 +325,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 20px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 18px;
   flex-shrink: 0;
-  background: #4a8dff;
+  background: linear-gradient(135deg, #5c97fc 0%, #3d79fc 100%);
 }
 
 .person-info { flex: 1; min-width: 0; }
@@ -369,7 +349,6 @@
   line-height: 1.6;
 
   .person-field { white-space: nowrap; }
-
   // 地址单独一行，完整展示可换行
   &.address-row {
     .person-field {
@@ -388,12 +367,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: rgba(74, 141, 255, 0.12);
       color: #4a8dff;
-      font-size: 12px;
+      font-size: 14px;
       cursor: pointer;
       flex-shrink: 0;
       transition: all 0.2s;
